@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useAppSelector, useAppDispatch } from '@/hooks/store'
 import { getStudentPresences } from '@/store/slices/presenceSlice'
 import { Card, Stats, PresenceTable } from '@/components/ui'
-import { QRCodeSVG } from 'qrcode.react'
+// import { QRCodeSVG } from 'qrcode.react'
 import {
   PieChart,
   Pie,
@@ -26,12 +26,14 @@ function StudentDashboard() {
   }, [dispatch, user?.id])
 
   const stats = presences.reduce(
-    (acc, presence) => {
-      acc[presence.status.toLowerCase()]++
-      return acc
+    (acc: { present: number; late: number; absent: number }, presence) => {
+      const key = presence.status.toLowerCase() as keyof typeof acc; // 👈 TypeScript comprend maintenant que c'est une clé valide
+      acc[key]++;
+      return acc;
     },
     { present: 0, late: 0, absent: 0 }
-  )
+  );
+  
 
   const chartData = [
     { name: 'Présents', value: stats.present },
