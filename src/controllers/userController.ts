@@ -50,7 +50,7 @@ export const updateProfile = async (req: FileRequest & AuthRequest, res: Respons
   }
 };
 
-export const getAllUsers = async (req: AuthRequest, res: Response) => {
+export const getAllUsers = async (_req: AuthRequest, res: Response) => {
   try {
     const users = await prisma.user.findMany({
       where: {

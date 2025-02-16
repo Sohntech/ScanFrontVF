@@ -1,36 +1,41 @@
-import { useState, useRef, useCallback } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/hooks/store'
 import { scanPresence } from '@/store/slices/presenceSlice'
 import { Card, Stats, PresenceTable } from '@/components/ui'
-import Webcam from 'react-webcam'
 import { toast } from 'react-hot-toast'
 import QrScanner from 'qr-scanner'
 
 function VigilDashboard() {
   const dispatch = useAppDispatch()
   const { presences, isLoading } = useAppSelector((state) => state.presence)
-  const webcamRef = useRef<Webcam>(null)
-  const [scanning, setScanning] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [qrScanner, setQrScanner] = useState<QrScanner | null>(null)
 
-  const handleScan = useCallback(async () => {
-    if (!webcamRef.current) return
+  useEffect(() => {
+    if (!videoRef.current) return
 
-    try {
-      setScanning(true)
-      const imageSrc = webcamRef.current.getScreenshot()
-      if (!imageSrc) return
-
-      const blob = await fetch(imageSrc).then((res) => res.blob())
-      const result = await QrScanner.scanImage(blob)
-      
-      if (result) {
-        await dispatch(scanPresence(result)).unwrap()
-        toast.success('Présence enregistrée')
+    const scanner = new QrScanner(
+      videoRef.current,
+      async (result) => {
+        console.log('QR Code détecté:', result)
+        try {
+          await dispatch(scanPresence(result.data)).unwrap()
+          toast.success('Présence enregistrée')
+        } catch (error) {
+          toast.error('Erreur lors du scan')
+        }
+      },
+      {
+        highlightScanRegion: true,
+        highlightCodeOutline: true,
       }
-    } catch (error) {
-      toast.error('Erreur lors du scan')
-    } finally {
-      setScanning(false)
+    )
+
+    scanner.start()
+    setQrScanner(scanner)
+
+    return () => {
+      scanner.stop()
     }
   }, [dispatch])
 
@@ -49,26 +54,10 @@ function VigilDashboard() {
           Scanner de présence
         </h2>
 
-        {/* Scanner */}
+        {/* Scanner QR Code */}
         <div className="mb-6">
           <div className="relative max-w-md mx-auto">
-            <Webcam
-              ref={webcamRef}
-              screenshotFormat="image/jpeg"
-              className="w-full rounded-lg"
-              videoConstraints={{
-                width: 720,
-                height: 720,
-                facingMode: 'environment',
-              }}
-            />
-            <button
-              onClick={handleScan}
-              disabled={scanning || isLoading}
-              className="mt-4 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-primary hover:bg-orange-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-primary disabled:opacity-50"
-            >
-              {scanning ? 'Scan en cours...' : 'Scanner le QR Code'}
-            </button>
+            <video ref={videoRef} className="w-full rounded-lg" autoPlay muted />
           </div>
         </div>
 
@@ -80,10 +69,7 @@ function VigilDashboard() {
           <h3 className="text-lg font-medium text-gray-900 mb-4">
             Derniers scans
           </h3>
-          <PresenceTable 
-            presences={presences.slice(0, 10)} 
-            isLoading={isLoading} 
-          />
+          <PresenceTable presences={presences.slice(0, 10)} isLoading={isLoading} />
         </div>
       </Card>
     </div>

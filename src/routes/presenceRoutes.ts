@@ -5,7 +5,7 @@ import {
   getStudentPresences 
 } from '../controllers/presenceController';
 import { protect, authorize } from '../middleware/authMiddleware';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../types';
 
 const router = express.Router();
 

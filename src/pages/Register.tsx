@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast'
 import { useAppDispatch } from '@/hooks/store'
 import { register as registerUser } from '@/store/slices/authSlice'
 import type { RegisterData } from '@/types'
+import { UserRole } from '@/types'
 import { Button, Input, Select } from '@/components/ui'
 
 const referentiels = ['RefDigital', 'DevWeb', 'DevData', 'AWS', 'Hackeuse']
@@ -30,7 +31,7 @@ function Register() {
   const onSubmit = async (data: RegisterData) => {
     try {
       setIsLoading(true)
-      await dispatch(registerUser({ ...data, role: 'APPRENANT' })).unwrap()
+      await dispatch(registerUser({ ...data, role: UserRole.APPRENANT })).unwrap()
       navigate('/dashboard')
       toast.success('Inscription réussie')
     } catch (error) {

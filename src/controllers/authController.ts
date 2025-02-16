@@ -6,20 +6,35 @@ import { generateQRCode } from '../utils/generateQR';
 import { generateMatricule } from '../utils/generateMatricule';
 import { loginSchema, registerSchema } from '../validations/authValidation';
 import cloudinary from '../config/cloudinary';
-import { FileRequest } from '../types';
+import { FileRequest } from '../types/index';
 
 const prisma = new PrismaClient();
 
-export const register = async (req: FileRequest, res: Response) => {
+interface RegisterData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: 'ADMIN' | 'VIGIL' | 'APPRENANT';
+  referentiel?: string;
+}
+
+export const register = async (req: FileRequest, res: Response): Promise<void> => {
   try {
-    const validatedData = registerSchema.parse(req.body);
+    const validatedData = registerSchema.parse(req.body) as RegisterData;
     
     const userExists = await prisma.user.findUnique({
       where: { email: validatedData.email },
     });
 
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      res.status(400).json({ message: 'User already exists' });
+      return;
+    }
+
+    if (validatedData.role === 'APPRENANT' && !validatedData.referentiel) {
+      res.status(400).json({ message: 'Referentiel is required for students' });
+      return;
     }
 
     const hashedPassword = await bcrypt.hash(validatedData.password, 10);
@@ -34,12 +49,8 @@ export const register = async (req: FileRequest, res: Response) => {
     let qrCode = undefined;
 
     if (validatedData.role === 'APPRENANT') {
-      if (!validatedData.referentiel) {
-        return res.status(400).json({ message: 'Referentiel is required for students' });
-      }
-      
       // Generate matricule
-      matricule = await generateMatricule(validatedData.referentiel);
+      matricule = await generateMatricule(validatedData.referentiel!);
       
       // Generate QR Code with matricule
       qrCode = await generateQRCode(matricule);

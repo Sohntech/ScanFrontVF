@@ -1,9 +1,17 @@
+import { Request } from 'express';
+
+export enum UserRole {
+  ADMIN = 'ADMIN',
+  VIGIL = 'VIGIL',
+  APPRENANT = 'APPRENANT'
+}
+
 export interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: 'ADMIN' | 'VIGIL' | 'APPRENANT';
+  role: UserRole;
   matricule?: string;
   photoUrl?: string;
   referentiel?: string;
@@ -39,7 +47,21 @@ export interface RegisterData {
   password: string;
   firstName: string;
   lastName: string;
-  role: 'APPRENANT';
+  role: UserRole;
   referentiel: string;
-  photo: File;
+  photo: Express.Multer.File;
+}
+
+export interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    photoUrl?: string;
+    role?: UserRole;
+  };
+}
+
+export interface FileRequest extends Request {
+  file?: Express.Multer.File;
 }

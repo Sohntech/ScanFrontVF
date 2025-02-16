@@ -31,8 +31,9 @@ function AdminDashboard() {
 
   const stats = presences.reduce(
     (acc, presence) => {
-      acc[presence.status.toLowerCase()]++
-      return acc
+      const status = presence.status.toLowerCase() as 'present' | 'late' | 'absent';
+      acc[status]++;
+      return acc;
     },
     { present: 0, late: 0, absent: 0 }
   )
