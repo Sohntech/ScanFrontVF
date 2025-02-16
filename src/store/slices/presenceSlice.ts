@@ -16,9 +16,9 @@ const initialState: PresenceState = {
 
 export const scanPresence = createAsyncThunk(
   'presence/scan',
-  async (qrCode: string) => {
-    console.log(`QR Code contains: ${qrCode}`); // Log the contents of qrCode
-    const response = await api.post('/presences/scan', { qrCode })
+  async (matricule: string) => {
+    console.log(`QR Code contains: ${matricule}`); // Log the contents of qrCode
+    const response = await api.post('/presences/scan', { matricule })
     console.log(response);
     return response.data
   }

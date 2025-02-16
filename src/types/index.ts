@@ -25,8 +25,8 @@ export interface Presence {
   userId: string;
   status: 'PRESENT' | 'LATE' | 'ABSENT';
   scanTime: string;
-  createdAt: string;
-  updatedAt: string;
+  date?: string;
+  matricule?: string;
   user?: User;
 }
 

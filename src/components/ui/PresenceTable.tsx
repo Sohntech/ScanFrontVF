@@ -1,4 +1,4 @@
-import { Presence } from '@/types'
+import { Presence } from '@/types/index'
 
 interface PresenceTableProps {
   presences: Presence[]
