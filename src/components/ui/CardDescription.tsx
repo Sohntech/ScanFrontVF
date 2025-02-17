@@ -1,5 +1,5 @@
 // CardDescription.tsx
-import React, { HTMLAttributes, forwardRef } from 'react'
+import { HTMLAttributes, forwardRef } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 const CardDescription = forwardRef<HTMLParagraphElement, HTMLAttributes<HTMLParagraphElement>>(

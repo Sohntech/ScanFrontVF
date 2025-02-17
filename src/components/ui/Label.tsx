@@ -1,5 +1,5 @@
 // Label.tsx
-import React, { LabelHTMLAttributes, forwardRef } from 'react'
+import { LabelHTMLAttributes, forwardRef } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 const Label = forwardRef<HTMLLabelElement, LabelHTMLAttributes<HTMLLabelElement>>(
