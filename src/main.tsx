@@ -5,7 +5,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import App from './App'
 import { store } from './store'
-import './index.css'
+import './index.css' 
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
