@@ -31,7 +31,7 @@ function App() {
         <Route path="dashboard" element={
           <PrivateRoute>
             {user?.role === 'ADMIN' && <AdminDashboard />}
-            {user?.role === 'VIGIL' && <VigilDashboard />}
+            {user?.role === 'VIGIL' && <VigilDashboard />}  
             {user?.role === 'APPRENANT' && <StudentDashboard />}
           </PrivateRoute>
         } />

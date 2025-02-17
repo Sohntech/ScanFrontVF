@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/hooks/store'
-import { scanPresence } from '@/store/slices/presenceSlice'
+import { estMarquerPresence, getPresences, scanPresence } from '@/store/slices/presenceSlice'
 import { Card, Stats, PresenceTable } from '@/components/ui'
 import { toast } from 'react-hot-toast'
 import QrScanner from 'qr-scanner'
@@ -11,18 +11,45 @@ function VigilDashboard() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [qrScanner, setQrScanner] = useState<QrScanner | null>(null)
 
+
+  useEffect(()=>{
+    const fetch = async()=>{
+      const today = new Date();
+      const startOfDay = new Date(today.setHours(0, 0, 0, 0)); // Début de la journée
+      const endOfDay = new Date(today.setHours(23, 59, 59, 999)); // Fin de la journée
+      const filter = {startDate:startOfDay.toDateString(), endDate:endOfDay.toDateString()};
+      console.log(filter);
+      await dispatch(getPresences(filter)).unwrap().then(dt=>{
+        console.log(dt)
+      });
+    }
+    fetch();
+  }, [])
+
   useEffect(() => {
     if (!videoRef.current) return
-
+    let isScan = false;
     const scanner = new QrScanner(
       videoRef.current,
       async (result) => {
-        console.log('QR Code détecté:', result)
-        try {
-          await dispatch(scanPresence(result.data)).unwrap()
-          toast.success('Présence enregistrée')
-        } catch (error) {
-          toast.error('Erreur lors du scan')
+        console.log("contenu qrcode",result.data, isScan);
+        if(!isScan){
+          isScan = true;
+          try {
+            await dispatch(estMarquerPresence(result.data)).unwrap().then(async estMarquerPresence=>{
+              if(estMarquerPresence){
+                toast.error('Vous êtes déjà marquer présent');
+                isScan = false;
+              }else{
+                await dispatch(scanPresence(result.data)).unwrap().then(_=>{isScan = false;});
+                toast.success('Présence enregistrée')
+              }
+            });  
+          } catch (error) {
+            toast.error('Erreur lors du scan')
+          }
+        }else{
+          // console.log('QR Code détecté mais déjà enregistré:', result)
         }
       },
       {

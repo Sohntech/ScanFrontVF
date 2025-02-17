@@ -11,21 +11,26 @@ import {
   Tooltip,
   Legend,
 } from 'recharts'
+import { getProfile } from '@/store/slices/authSlice'
 
 const COLORS = ['#4CAF50', '#FFC107', '#F44336']
 
 function StudentDashboard() {
   const dispatch = useAppDispatch()
   const { user } = useAppSelector((state) => state.auth)
-  const { presences } = useAppSelector((state) => state.presence)
+  let { presences } = useAppSelector((state) => state.presence)
 
-  useEffect(() => {
-    if (user?.id) {
-      dispatch(getStudentPresences(user.id))
-    }
-  }, [dispatch, user?.id])
+  
+  useEffect(()=>{
+    (async()=>{
+      await dispatch(getProfile()).unwrap();
+    })();
+  }, [])
 
-  const stats = presences.reduce(
+  console.log(presences);
+
+
+  const stats = [...user.presences].reduce(
     (acc: { present: number; late: number; absent: number }, presence) => {
       const key = presence.status.toLowerCase() as keyof typeof acc; // 👈 TypeScript comprend maintenant que c'est une clé valide
       acc[key]++;
@@ -122,7 +127,7 @@ function StudentDashboard() {
             Historique des présences
           </h3>
           <PresenceTable 
-            presences={presences} 
+            presences={user.presences} 
             showStudent={false} 
           />
         </div>
