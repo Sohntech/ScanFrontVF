@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import api from '@/lib/axios'
-import { Presence } from '@/types'
+import { Presence } from '@/types/index'
 
 interface PresenceState {
   presences: Presence[];

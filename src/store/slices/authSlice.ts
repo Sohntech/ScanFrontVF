@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import api from '@/lib/axios'
-import { AuthState, LoginCredentials, RegisterData, User } from '@/types'
+import { AuthState, LoginCredentials, RegisterData, User } from '@/types/index'
 
 const initialState: AuthState = {
   user: null,
@@ -19,31 +19,35 @@ export const login = createAsyncThunk(
 )
 
 export const register = createAsyncThunk(
-  'auth/register',
-  async (data: RegisterData) => {
-    const formData = new FormData()
-    
-    // Ajout des champs texte
-    formData.append('email', data.email)
-    formData.append('password', data.password)
-    formData.append('firstName', data.firstName)
-    formData.append('lastName', data.lastName)
-    formData.append('role', data.role)
-    formData.append('referentiel', data.referentiel)
-    
-    // Ajout de la photo
-    if (data.photo instanceof File) {
-      formData.append('photo', data.photo)
+    'auth/register',
+    async (data: RegisterData) => {
+      const formData = new FormData()
+      
+      formData.append('email', data.email)
+      formData.append('password', data.password)
+      formData.append('firstName', data.firstName)
+      formData.append('lastName', data.lastName)
+      formData.append('role', data.role)
+      formData.append('referentiel', data.referentiel)
+  
+      if (data.photo instanceof File) {
+        formData.append('photo', data.photo)
+      }
+  
+      // 🔥 Vérification avant l'envoi
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value)
+      }
+  
+      const response = await api.post('/auth/register', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      return response.data
     }
-    
-    const response = await api.post('/auth/register', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
-    return response.data
-  }
-)
+  )
+  
 
 export const getProfile = createAsyncThunk(
   'auth/getProfile',

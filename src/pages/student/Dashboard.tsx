@@ -13,7 +13,7 @@ import {
 import { getProfile } from '@/store/slices/authSlice'
 import { GraduationCap, Mail, IdCard, Calendar, Clock, CheckCircle } from 'lucide-react'
 
-const COLORS = ['#FF9800', '#1a1a1a', '#FFB74D']
+const COLORS = ['#008000', '#FF9800', '#FF5733']
 
 function StudentDashboard() {
   const dispatch = useAppDispatch()
@@ -26,7 +26,7 @@ function StudentDashboard() {
     })();
   }, [])
 
-  const stats = [...user.presences].reduce(
+  const stats = [...presences].reduce(
     (acc: { present: number; late: number; absent: number }, presence) => {
       const key = presence.status.toLowerCase() as keyof typeof acc;
       acc[key]++;
@@ -176,7 +176,7 @@ function StudentDashboard() {
           </div>
           <div className="overflow-x-auto">
             <PresenceTable 
-              presences={user.presences} 
+              presences={presences} 
               showStudent={false} 
             />
           </div>
