@@ -2,26 +2,19 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: 'https://sascan2.onrender.com/api',
-  headers: {
-    'Content-Type': 'multipart/form-data',
-  }
 })
 
-// Add request interceptor for debugging
-api.interceptors.request.use(request => {
-  console.log('Request:', request.url, request.data)
+api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) {
-    request.headers.Authorization = `Bearer ${token}`
+    config.headers.Authorization = `Bearer ${token}`
   }
-  return request
+  return config
 })
 
-// Add response interceptor for debugging
 api.interceptors.response.use(
-  response => response,
-  error => {
-    console.log('Error response:', error.response?.data)
+  (response) => response,
+  (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       window.location.href = '/login'

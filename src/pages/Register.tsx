@@ -19,9 +19,7 @@ const Register = () => {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const [isLoading, setIsLoading] = useState(false)
-  const { register, handleSubmit, formState: { errors } } = useForm<RegisterData & {
-    photo: FileList;
-  }>()
+  const { register, handleSubmit, formState: { errors } } = useForm<RegisterData>()
   const [previewUrl, setPreviewUrl] = useState<string>('')
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,32 +40,16 @@ const Register = () => {
     setPreviewUrl('')
   }
 
-  const onSubmit = async (data: RegisterData & { photo: FileList }) => {
+  const onSubmit = async (data: RegisterData) => {
     try {
       setIsLoading(true)
-      
-      const formData = new FormData();
-      formData.append('photo', data.photo[0]);
-      formData.append('firstName', data.firstName);
-      formData.append('lastName', data.lastName);
-      formData.append('email', data.email);
-      formData.append('password', data.password);
-      formData.append('referentiel', data.referentiel);
-      formData.append('role', 'APPRENANT');
-
-      // Debug log
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
-    
-      await dispatch(registerUser(formData)).unwrap();
-      navigate('/dashboard');
-      toast.success('Inscription réussie');
-    } catch (error: any) {
-      console.error('Erreur détaillée:', error.response?.data);
-      toast.error(error.response?.data?.message || 'Une erreur est survenue lors de l\'inscription');
+      await dispatch(registerUser({ ...data, role: UserRole.APPRENANT })).unwrap()
+      navigate('/dashboard')
+      toast.success('Inscription réussie')
+    } catch (error) {
+      toast.error('Une erreur est survenue lors de l\'inscription')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
