@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'react-hot-toast'
 import { useAppDispatch } from '@/hooks/store'
 import { login } from '@/store/slices/authSlice'
-import type { LoginCredentials } from '@/types'
+import type { LoginCredentials } from '@/types/index'
 import { Button, Input } from '@/components/ui'
 
 function Login() {
