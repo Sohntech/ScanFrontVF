@@ -29,7 +29,6 @@ interface FormData {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
   password: string;
   referential: string;
 }
@@ -38,7 +37,6 @@ interface ValidationErrors {
   firstName?: string;
   lastName?: string;
   email?: string;
-  phone?: string;
   password?: string;
   referential?: string;
   profilePicture?: string;
@@ -57,7 +55,6 @@ const Register = () => {
     firstName: '',
     lastName: '',
     email: '',
-    phone: '',
     password: '',
     referential: ''
   });
@@ -115,11 +112,6 @@ const Register = () => {
       isValid = false;
     }
 
-    if (!formData.phone.trim()) {
-      errors.phone = 'Téléphone requis';
-      isValid = false;
-    }
-
     if (!formData.password) {
       errors.password = 'Mot de passe requis';
       isValid = false;
@@ -164,7 +156,6 @@ const Register = () => {
       formDataToSend.append('firstName', formData.firstName);
       formDataToSend.append('lastName', formData.lastName);
       formDataToSend.append('email', formData.email);
-      formDataToSend.append('phone', formData.phone);
       formDataToSend.append('password', formData.password);
       formDataToSend.append('referentiel', formData.referential);
       formDataToSend.append('role', 'APPRENANT');
