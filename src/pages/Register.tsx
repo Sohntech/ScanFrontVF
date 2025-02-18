@@ -55,10 +55,7 @@ const Register = () => {
       formData.append('referentiel', data.referentiel);
       formData.append('role', 'APPRENANT');
 
-      // Debug log
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
+      
     
       await dispatch(registerUser(formData)).unwrap();
       navigate('/dashboard');

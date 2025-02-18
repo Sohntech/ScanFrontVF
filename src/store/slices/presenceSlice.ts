@@ -17,7 +17,7 @@ const initialState: PresenceState = {
 export const scanPresence = createAsyncThunk(
   'presence/scan',
   async (matricule: string) => {
-    console.log(`QR Code contains: ${matricule}`); // Log the contents of qrCode
+    // console.log(`QR Code contains: ${matricule}`); // Log the contents of qrCode
     const response = await api.post('/presences/scan', { matricule })
     return response.data;
   }
@@ -26,9 +26,9 @@ export const scanPresence = createAsyncThunk(
 export const estMarquerPresence = createAsyncThunk(
   "presences/estMarquer",
   async (matricule: string) => {
-    console.log(`QR Code contains: ${matricule}`); // Log the contents of qrCode
+    // console.log(`QR Code contains: ${matricule}`); // Log the contents of qrCode
     const response = await api.get(`/presences/estMarquer/${matricule}`)
-    console.log(response.data);
+    // console.log(response.data);
     return response.data.presence ? true : false;
   }
 
