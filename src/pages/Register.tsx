@@ -7,7 +7,7 @@ import { register as registerUser } from '@/store/slices/authSlice';
 // import type { RegisterData } from '@/types/index';
 import { Card, CardHeader, CardContent, CardDescription,  Button, Input, Label } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Mail, Lock, ChevronRight, AlertCircle, User, EyeOff, Eye, Phone } from 'lucide-react';
+import { Camera, Mail, Lock, ChevronRight, AlertCircle, User, EyeOff, Eye } from 'lucide-react';
 
 // Define referentials with icons
 interface Referential {
@@ -460,44 +460,6 @@ const Register = () => {
                           </AnimatePresence>
                         </div>
                       </motion.div>
-
-                      {/* Champ téléphone */}
-                      <motion.div
-                        variants={{
-                          hidden: { y: 20, opacity: 0 },
-                          visible: { y: 0, opacity: 1 }
-                        }}
-                        className="space-y-1 sm:space-y-1.5 md:space-y-2"
-                      >
-                        <Label className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm font-medium text-gray-700">
-                          <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                          <span>Téléphone</span>
-                        </Label>
-                        <div className="relative">
-                          <Input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            className="h-9 sm:h-10 md:h-11 lg:h-12 w-full pl-3 pr-3 text-xs sm:text-sm rounded-md border border-gray-200 bg-white/80 focus:bg-white focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50 transition-all"
-                            placeholder="+221 77 123 45 67"
-                          />
-                          <AnimatePresence>
-                          {validationErrors.phone && (
-                            <motion.div
-                            initial={{ opacity: 0, y: -5 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -5 }}
-                              className="absolute right-0 top-full mt-1 text-xs text-red-500 flex items-center gap-1"
-                            >
-                              <AlertCircle className="w-2 h-2 sm:w-3 sm:h-3" />
-                              {validationErrors.phone}
-                            </motion.div>
-                          )}
-                          </AnimatePresence>
-                        </div>
-                      </motion.div>
-
                       {/* Password Field */}
                       <div className="space-y-1 sm:space-y-1.5 md:space-y-2">
                         <label className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm font-medium text-gray-700">
