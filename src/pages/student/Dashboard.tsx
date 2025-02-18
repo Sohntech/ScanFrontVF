@@ -103,7 +103,7 @@ function StudentDashboard() {
                 <h3 className="text-xl font-semibold text-gray-900">QR Code Présence</h3>
                 {user?.qrCode && (
                   <div className="bg-white p-4 rounded-2xl shadow-inner border border-orange-100">
-                    <img src={user.qrCode} alt="QR Code" className="w-full max-w-[200px] h-auto" />
+                    <img src={user.qrCode} alt="QR Code" className="w-full scale-150 max-w-[200px] h-auto" />
                   </div>
                 )}
                 <p className="text-sm text-gray-500 text-center">
