@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import api from '@/lib/axios'
-import { AuthState, LoginCredentials, RegisterData, User } from '@/types/index'
+import { AuthState, LoginCredentials, User } from '@/types/index'
 
 const initialState: AuthState = {
   user: null,

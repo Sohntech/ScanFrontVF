@@ -5,8 +5,8 @@ import { toast } from 'react-hot-toast'
 import { useAppDispatch } from '@/hooks/store'
 import { register as registerUser } from '@/store/slices/authSlice'
 import type { RegisterData } from '@/types/index'
-import { UserRole } from '@/types'
-import { Card, CardHeader,  CardDescription, CardContent } from '@/components/ui'
+// import { UserRole } from '@/types'
+import { Card, CardHeader, CardContent } from '@/components/ui'
 import { Button } from '@/components/ui'
 import { Input } from '@/components/ui'
 import { Select } from '@/components/ui'
@@ -72,7 +72,7 @@ const Register = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-orange-50 to-white">
+    <div className="min-h-screen w-full bg-gradient-to-br from-orange-50 to-white overflow-hidden">
       <div className="flex min-h-screen flex-col lg:flex-row">
         {/* Branding Section */}
         <motion.div 
@@ -146,13 +146,8 @@ const Register = () => {
           <div className="w-full max-w-md">
             <Card className="border-0 shadow-xl shadow-orange-100/30 backdrop-blur-xl bg-white/80">
               <CardHeader className="space-y-3 p-4 sm:p-6 lg:p-8">
-                
-              
-                <CardDescription className="text-sm sm:text-base text-center">
-                  Creez votre compte
-                </CardDescription>
+                  <h1 className='text-black text-lg sm:text-xl lg:text-2xl font-bold text-center'>Créez votre compte</h1>
               </CardHeader>
-
               <CardContent className="p-4 sm:p-6 lg:p-8">
                 <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit(onSubmit)}>
                   {/* Photo Upload */}

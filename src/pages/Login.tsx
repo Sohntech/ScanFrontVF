@@ -124,7 +124,7 @@ function Login() {
                   </div>
                 </motion.div>
                 <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-center">
-                  Connexion
+                  <h1 className='text-black'>Connexion</h1>
                 </CardTitle>
                 <CardDescription className="text-sm sm:text-base text-center">
                   Accédez à votre espace personnel ODC
