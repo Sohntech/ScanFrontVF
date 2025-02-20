@@ -389,7 +389,7 @@ function AdminDashboard() {
               </div>
               <input
                 type="text"
-                placeholder="Rechercher par nom ou matricule..."
+                placeholder="Rechercher (nom/matricule)"
                 className="block w-64 rounded-lg border-gray-300 pl-10 focus:ring-orange-500 focus:border-orange-500"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
