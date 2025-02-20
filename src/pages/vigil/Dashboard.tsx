@@ -18,7 +18,6 @@ interface StudentInfo {
 }
 
 const VigilDashboard = () => {
-  // [État et hooks restent identiques]
   const dispatch = useAppDispatch();
   const { presences, isLoading } = useAppSelector((state) => state.presence);
   const [points, setPoints] = useState(0);
@@ -27,7 +26,6 @@ const VigilDashboard = () => {
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
   const videoRef = useRef(null);
 
-  // [Tous les useEffects et fonctions restent identiques]
   useEffect(() => {
     const fetch = async () => {
       const today = new Date();
@@ -111,38 +109,40 @@ const VigilDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        {/* Header moderne */}
-        <div className="bg-orange-500 p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white">
-                Scanner de Présence
-              </h1>
-              <p className="text-orange-100 text-sm mt-1">
-                Scannez les QR codes pour enregistrer les présences
-              </p>
-            </div>
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 text-white">
-                <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5" />
-                  <span className="font-medium">{points} Scans</span>
-                </div>
+        {/* Header responsive */}
+        <div className="bg-orange-500 p-4 sm:p-6">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="w-full sm:w-auto">
+                <h1 className="text-xl sm:text-2xl font-bold text-white">
+                  Scanner de Présence
+                </h1>
+                <p className="text-orange-100 text-sm mt-1">
+                  Scannez les QR codes pour enregistrer les présences
+                </p>
               </div>
-              <Button
-                className="bg-white text-orange-500 hover:bg-orange-50 flex-1 sm:flex-none"
-                onClick={startScanning}
-              >
-                <Camera className="w-5 h-5 mr-2" />
-                Scanner
-              </Button>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="bg-white/10 backdrop-blur rounded-lg px-3 py-2 text-white flex-1 sm:flex-none">
+                  <div className="flex items-center justify-center sm:justify-start gap-2">
+                    <Award className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="font-medium text-sm sm:text-base">{points} Scans</span>
+                  </div>
+                </div>
+                <Button
+                  className="bg-white text-orange-500 hover:bg-orange-50 flex-1 sm:flex-none text-sm sm:text-base px-3 py-2 h-auto"
+                  onClick={startScanning}
+                >
+                  <Camera className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  Scanner
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="p-4 sm:p-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {showScanner ? (
             <Card className="border-none shadow-lg overflow-hidden">
               <CardContent className="p-0">
@@ -155,9 +155,9 @@ const VigilDashboard = () => {
                   />
                   <div className="absolute inset-0 border-2 border-orange-500/30"></div>
                   {isScanning && (
-                    <div className="absolute bottom-4 left-4 bg-black/70 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                    <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg flex items-center gap-2">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm">Scanner actif</span>
+                      <span className="text-xs sm:text-sm">Scanner actif</span>
                     </div>
                   )}
                 </div>
@@ -165,42 +165,42 @@ const VigilDashboard = () => {
             </Card>
           ) : (
             <>
-              <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <Card className="border-none shadow-sm">
-                  <CardContent className="p-4">
-                    <p className="text-sm text-gray-500 mb-1">Présents</p>
+                  <CardContent className="p-3 sm:p-4">
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Présents</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-gray-900">{stats.present}</span>
-                      <Users className="w-5 h-5 text-orange-500" />
+                      <span className="text-xl sm:text-2xl font-bold text-gray-900">{stats.present}</span>
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card className="border-none shadow-sm">
-                  <CardContent className="p-4">
-                    <p className="text-sm text-gray-500 mb-1">Retards</p>
+                  <CardContent className="p-3 sm:p-4">
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Retards</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-gray-900">{stats.late}</span>
-                      <Clock className="w-5 h-5 text-orange-500" />
+                      <span className="text-xl sm:text-2xl font-bold text-gray-900">{stats.late}</span>
+                      <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card className="border-none shadow-sm">
-                  <CardContent className="p-4">
-                    <p className="text-sm text-gray-500 mb-1">Absents</p>
+                  <CardContent className="p-3 sm:p-4">
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Absents</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-gray-900">{stats.absent}</span>
-                      <Users className="w-5 h-5 text-orange-500" />
+                      <span className="text-xl sm:text-2xl font-bold text-gray-900">{stats.absent}</span>
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
                     </div>
                   </CardContent>
                 </Card>
               </div>
 
               <Card className="border-none shadow-lg">
-                <CardHeader className="px-6 py-4 border-b border-gray-100">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-orange-500" />
+                <CardHeader className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
                     Derniers scans
                   </CardTitle>
                 </CardHeader>
@@ -218,33 +218,33 @@ const VigilDashboard = () => {
         </div>
 
         <Dialog open={studentInfo !== null} onOpenChange={() => setStudentInfo(null)}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader className="border-b pb-4">
-              <DialogTitle>Information de l'apprenant</DialogTitle>
+          <DialogContent className="sm:max-w-md mx-4">
+            <DialogHeader className="border-b pb-3 sm:pb-4">
+              <DialogTitle className="text-base sm:text-lg">Information de l'apprenant</DialogTitle>
             </DialogHeader>
             {studentInfo && (
-              <div className="py-4">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="py-3 sm:py-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Nom</p>
-                    <p className="font-medium">{studentInfo.student?.name}</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Nom</p>
+                    <p className="text-sm sm:text-base font-medium">{studentInfo.student?.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Classe</p>
-                    <p className="font-medium">{studentInfo.student?.class}</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Classe</p>
+                    <p className="text-sm sm:text-base font-medium">{studentInfo.student?.class}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Heure d'arrivée</p>
-                    <p className="font-medium">{new Date(studentInfo.createdAt).toLocaleTimeString()}</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Heure d'arrivée</p>
+                    <p className="text-sm sm:text-base font-medium">{new Date(studentInfo.createdAt).toLocaleTimeString()}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Statut</p>
-                    <p className="font-medium text-orange-500">{studentInfo.status}</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Statut</p>
+                    <p className="text-sm sm:text-base font-medium text-orange-500">{studentInfo.status}</p>
                   </div>
                 </div>
-                <DialogFooter className="mt-6">
+                <DialogFooter className="mt-4 sm:mt-6">
                   <Button 
-                    className="w-full bg-orange-500 text-white hover:bg-orange-600" 
+                    className="w-full bg-orange-500 text-white hover:bg-orange-600 text-sm sm:text-base py-2 h-auto" 
                     onClick={handleValidatePresence}
                   >
                     Valider la présence
