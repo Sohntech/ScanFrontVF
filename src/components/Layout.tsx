@@ -37,12 +37,12 @@ function Layout() {
                   <div className="flex flex-shrink-0 items-center">
                     {/* Logo principal avec transition */}
                     <img
-                      className="h-8 w-auto md:h-10 transition-transform hover:scale-105"
-                      src="https://womeninbusiness.hub.brussels/content/uploads/2024/07/logo_orangedigitalcenter.png"
+                      className="h-18 w-auto md:h-10 transition-transform hover:scale-105"
+                      src="https://res.cloudinary.com/dxernpnkd/image/upload/v1740074459/phdwopu68sbb9ige7uic.png"
                       alt="ODC"
                     />
                   </div>
-                  <div className="hidden sm:ml-6 md:ml-8 sm:flex sm:space-x-4 md:space-x-8">
+                  {/* <div className="hidden sm:ml-6 md:ml-8 sm:flex sm:space-x-4 md:space-x-8">
                     <Link
                       to="/dashboard"
                       className="inline-flex items-center border-b-2 border-orange-500 px-1 md:px-2 pt-1 text-xs md:text-sm font-medium text-gray-900 transition-colors hover:text-orange-600"
@@ -50,7 +50,7 @@ function Layout() {
                       <ChartBarIcon className="mr-1 md:mr-2 h-4 w-4 md:h-5 md:w-5" />
                       Tableau de bord
                     </Link>
-                  </div>
+                  </div> */}
                 </div>
                 <div className="hidden sm:flex sm:items-center">
                   <Menu as="div" className="relative ml-3">
