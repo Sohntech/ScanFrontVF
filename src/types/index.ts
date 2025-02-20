@@ -22,12 +22,15 @@ export interface User {
 
 export interface Presence {
   id: string;
-  userId: string;
-  status: 'PRESENT' | 'LATE' | 'ABSENT';
-  scanTime: string;
-  date?: string;
-  matricule?: string;
-  user?: User;
+  status: string;
+  arrivalTime?: string;
+  user: {
+    firstName: string;
+    lastName: string;
+    matricule: string;
+    referentiel: string;
+    photoUrl: string;
+  };
 }
 
 export interface AuthState {

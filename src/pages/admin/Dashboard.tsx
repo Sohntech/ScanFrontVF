@@ -1,394 +1,1114 @@
-import { useState, useEffect } from 'react'
-import { useAppDispatch, useAppSelector } from '@/hooks/store'
-import { getPresences } from '@/store/slices/presenceSlice'
-import { Card, Stats, PresenceTable } from '@/components/ui'
+import { useState, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/hooks/store';
+import { getPresences } from '@/store/slices/presenceSlice';
 import {
   BarChart,
   Bar,
+  PieChart,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from 'recharts'
-import { Calendar, Filter, Users, BarChart2, RefreshCcw, Code, Terminal, Sparkles, Cpu, Database, Menu } from 'lucide-react'
+} from 'recharts';
+import {
+  Calendar,
+  Search,
+  Users,
+  Clock,
+  X,
+  User,
+  AlertTriangle,
+  Check,
+  ChevronDown,
+  Filter,
+  RefreshCw,
+  Menu,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
+import { Presence } from '@/types/index';
 
-const referentiels = ['RefDigital', 'DevWeb', 'DevData', 'AWS', 'Hackeuse']
+// Theme colors
+const COLORS = {
+  primary: '#FF7900', // Main orange
+  primaryLight: '#FF9A40',
+  primaryDark: '#E66C00',
+  present: '#10B981', // Green for present
+  late: '#F59E0B', // Orange for late
+  absent: '#EF4444', // Red for absent
+  bgLight: '#F9FAFB',
+  card: '#FFFFFF',
+  text: '#1F2937',
+  textLight: '#6B7280',
+  border: '#E5E7EB',
+};
+
+// Available referentials
+const referentiels = ['RefDigital', 'DevWeb', 'DevData', 'AWS', 'Hackeuse'];
+
+// Filtering periods
+const timeFilterOptions = [
+  { id: 'day', label: 'Today' },
+  { id: 'week', label: 'This week' },
+  { id: 'month', label: 'This month' },
+  { id: 'total', label: 'Total' },
+];
 
 function AdminDashboard() {
-  const dispatch = useAppDispatch()
-  const { presences, isLoading } = useAppSelector((state) => state.presence)
-  const [filters, setFilters] = useState({
-    startDate: '',
-    endDate: '',
-    status: '',
-    referentiel: '',
-  })
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
-
+  const dispatch = useAppDispatch();
+  const { presences, isLoading } = useAppSelector((state) => state.presence);
+  
+  // States for filters
+  const [timeFilter, setTimeFilter] = useState('day');
+  const [referentielFilter, setReferentielFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showTimeFilterDropdown, setShowTimeFilterDropdown] = useState(false);
+  const [showReferentielDropdown, setShowReferentielDropdown] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('overview');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [detailsData, setDetailsData] = useState<{ title: string; data: Presence[] }>({ title: '', data: [] });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Check if the device is mobile
   useEffect(() => {
-    dispatch(getPresences(filters))
-  }, [dispatch, filters])
-
+    const checkIfMobile = () => setIsMobile(window.innerWidth < 768);
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+  
+  // Get presences with applied filters
+  useEffect(() => {
+    // Convert time filter to real dates for the API
+    const now = new Date();
+    let startDate = '';
+    let endDate = now.toISOString().split('T')[0];
+    
+    if (timeFilter === 'day') {
+      startDate = endDate;
+    } else if (timeFilter === 'week') {
+      const firstDayOfWeek = new Date(now);
+      firstDayOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+      startDate = firstDayOfWeek.toISOString().split('T')[0];
+    } else if (timeFilter === 'month') {
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      startDate = firstDayOfMonth.toISOString().split('T')[0];
+    }
+    
+    const filters = {
+      startDate,
+      endDate: timeFilter === 'total' ? '' : endDate,
+      status: selectedStatus,
+      referentiel: referentielFilter,
+      search: searchQuery,
+    };
+    
+    dispatch(getPresences(filters));
+  }, [dispatch, timeFilter, selectedStatus, referentielFilter, searchQuery]);
+  
+  // Calculate statistics
   const stats = presences.reduce(
     (acc, presence) => {
-      const status = presence.status.toLowerCase() as 'present' | 'late' | 'absent';
-      acc[status]++;
+      const status = presence.status.toLowerCase();
+      if (status === 'present') acc.present++;
+      else if (status === 'late') acc.late++;
+      else if (status === 'absent') acc.absent++;
       return acc;
     },
     { present: 0, late: 0, absent: 0 }
-  )
-
-  const chartData = [
-    { name: 'Présents', value: stats.present },
-    { name: 'Retards', value: stats.late },
-    { name: 'Absents', value: stats.absent },
-  ]
-
+  );
+  
+  const totalCount = stats.present + stats.late + stats.absent;
+  
+  // Données pour les graphiques
+  const pieChartData = [
+    { name: 'Présents', value: stats.present, color: COLORS.present },
+    { name: 'Retards', value: stats.late, color: COLORS.late },
+    { name: 'Absents', value: stats.absent, color: COLORS.absent },
+  ];
+  
+  // Données filtrées pour le tableau
+  const filteredPresences = presences.filter(presence => {
+    // Filtre par référentiel si spécifié
+    if (referentielFilter && presence.user.referentiel !== referentielFilter) return false;
+    
+    // Filtre par recherche
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
+      const fullName = `${presence.user.firstName} ${presence.user.lastName}`.toLowerCase();
+      const matricule = presence.user.matricule.toLowerCase();
+      if (!fullName.includes(searchLower) && !matricule.includes(searchLower)) {
+        return false;
+      }
+    }
+    
+    // Filtre par statut si sélectionné
+    if (selectedStatus && presence.status.toLowerCase() !== selectedStatus.toLowerCase()) {
+      return false;
+    }
+    
+    return true;
+  });
+  
+  // Pagination
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filteredPresences.length / itemsPerPage);
+  const currentData = filteredPresences.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+  // Ouvrir le modal de détails
+  const openDetailsModal = (status: string) => {
+    const statusLabel = status === 'present' ? 'Présents' : status === 'late' ? 'Retards' : 'Absents';
+    const filteredData = presences.filter(p => p.status.toLowerCase() === status);
+    setDetailsData({
+      title: statusLabel,
+      data: filteredData as any,
+    });
+    setShowDetailsModal(true);
+    setSelectedStatus(status);
+  };
+  
+  // Réinitialiser tous les filtres
   const resetFilters = () => {
-    setFilters({
-      startDate: '',
-      endDate: '',
-      status: '',
-      referentiel: '',
-    })
-    setMobileFiltersOpen(false)
-  }
-
-  // Composant de filtres réutilisable
-  const FilterInputs = () => (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      {/* Date début */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          Date début
-        </label>
-        <div className="relative group">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Calendar className="h-5 w-5 text-gray-400 group-hover:text-orange-500 transition-colors duration-200" />
-          </div>
-          <input
-            type="date"
-            className="pl-10 block w-full rounded-xl border-gray-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 transition-all duration-200 hover:border-orange-300"
-            value={filters.startDate}
-            onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-          />
-        </div>
-      </div>
-
-      {/* Date fin */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          Date fin
-        </label>
-        <div className="relative group">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Calendar className="h-5 w-5 text-gray-400 group-hover:text-orange-500 transition-colors duration-200" />
-          </div>
-          <input
-            type="date"
-            className="pl-10 block w-full rounded-xl border-gray-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 transition-all duration-200 hover:border-orange-300"
-            value={filters.endDate}
-            onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-          />
-        </div>
-      </div>
-
-      {/* Statut */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          Statut
-        </label>
-        <select
-          className="block w-full rounded-xl border-gray-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 transition-all duration-200 hover:border-orange-300"
-          value={filters.status}
-          onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-        >
-          <option value="">Tous</option>
-          <option value="PRESENT">Présent</option>
-          <option value="LATE">Retard</option>
-          <option value="ABSENT">Absent</option>
-        </select>
-      </div>
-
-      {/* Référentiel */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          Référentiel
-        </label>
-        <select
-          className="block w-full rounded-xl border-gray-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 transition-all duration-200 hover:border-orange-300"
-          value={filters.referentiel}
-          onChange={(e) => setFilters({ ...filters, referentiel: e.target.value })}
-        >
-          <option value="">Tous</option>
-          {referentiels.map((ref) => (
-            <option key={ref} value={ref}>
-              {ref}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
-  )
-
+    setTimeFilter('day');
+    setReferentielFilter('');
+    setSearchQuery('');
+    setSelectedStatus('');
+    setCurrentPage(1);
+  };
+  // Obtenir le label de couleur selon le statut
+  const getStatusLabel = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'present':
+        return <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">Présent</span>;
+      case 'late':
+        return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">Retard</span>;
+      case 'absent':
+        return <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">Absent</span>;
+      default:
+        return <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">Inconnu</span>;
+    }
+  };
+  
+  // Obtenir l'icône selon le statut
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'present':
+        return <Check className="w-5 h-5 text-green-500" />;
+      case 'late':
+        return <Clock className="w-5 h-5 text-yellow-500" />;
+      case 'absent':
+        return <AlertTriangle className="w-5 h-5 text-red-500" />;
+      default:
+        return null;
+    }
+  };
+  
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-4 sm:py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
-        {/* Header */}
-        <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-orange-600  "></div>
-          <div className="relative bg-white/10 backdrop-blur-sm rounded-3xl shadow-2xl">
-            <div className="p-4 sm:p-8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-orange-500 p-2 sm:p-3 rounded-2xl shadow-lg">
-                      <Code className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                    </div>
-                    <div>
-                      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1">
-                        École du Code Sonatel Academy
-                      </h1>
-                      <div className="flex items-center space-x-2 text-orange-50">
-                        <Cpu className="w-4 h-4" />
-                        <span className="text-sm sm:text-base">Dashboard Administrateur</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-2 sm:space-x-4">
-                    <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl">
-                      <div className="flex items-center space-x-2 text-white text-sm">
-                        <Database className="w-4 h-4" />
-                        <span>Total Étudiants: {presences.length}</span>
-                      </div>
-                    </div>
-                    <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl">
-                      <div className="flex items-center space-x-2 text-white text-sm">
-                        <Terminal className="w-4 h-4" />
-                        <span>Taux de présence: {Math.round((stats.present / presences.length) * 100)}%</span>
-                      </div>
-                    </div>
-                  </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+      {/* Header Navigation */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 flex items-center">
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-2 rounded-lg mr-3">
+                  <Users className="h-6 w-6 text-white" />
                 </div>
+                <span className="text-xl font-bold text-gray-900">Dashboard Admin</span>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Filters Card - Version Mobile */}
-        <div className="md:hidden">
-          <Card className="p-4 bg-white shadow-xl rounded-3xl">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-2 rounded-xl shadow-lg">
-                  <Filter className="w-4 h-4 text-white" />
-                </div>
-                <h2 className="text-lg font-semibold text-gray-800">Filtres</h2>
+            
+            <div className="hidden md:flex items-center">
+              <div className="flex space-x-4">
+                <span className="px-3 py-2 text-sm font-medium rounded-md bg-orange-50 text-orange-700">
+                  <Calendar className="inline-block w-4 h-4 mr-1" />
+                  {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </span>
               </div>
               <button
-                onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-                className="bg-gray-50 p-2 rounded-xl"
+                onClick={resetFilters}
+                className="ml-4 flex items-center space-x-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition duration-150"
               >
-                <Menu className="w-5 h-5 text-gray-600" />
+                <RefreshCw className="w-4 h-4" />
+                <span>Réinitialiser</span>
               </button>
             </div>
-            {mobileFiltersOpen && (
-              <div className="mt-4 space-y-4">
-                <FilterInputs />
+            
+            <div className="flex items-center md:hidden">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none"
+              >
+                {mobileMenuOpen ? (
+                  <X className="block h-6 w-6" />
+                ) : (
+                  <Menu className="block h-6 w-6" />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white shadow-lg border-t border-gray-200 p-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">
+                  <Calendar className="inline-block w-4 h-4 mr-1" />
+                  {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </span>
                 <button
                   onClick={resetFilters}
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl group"
+                  className="flex items-center space-x-1 px-3 py-1 bg-orange-100 text-orange-700 rounded-md text-sm"
                 >
-                  <RefreshCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
+                  <RefreshCw className="w-3 h-3" />
                   <span>Réinitialiser</span>
                 </button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {timeFilterOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => {
+                      setTimeFilter(option.id);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`px-3 py-2 text-sm font-medium rounded-md ${
+                      timeFilter === option.id
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Tabs pour la navigation entre les vues */}
+        <div className="mb-6 border-b border-gray-200">
+          <div className="flex overflow-x-auto hide-scrollbar space-x-8">
+            <button
+              onClick={() => setSelectedTab('overview')}
+              className={`pb-4 text-sm font-medium border-b-2 whitespace-nowrap ${
+                selectedTab === 'overview'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Vue d'ensemble
+            </button>
+            <button
+              onClick={() => setSelectedTab('present')}
+              className={`pb-4 text-sm font-medium border-b-2 whitespace-nowrap ${
+                selectedTab === 'present'
+                  ? 'border-green-500 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Présences
+            </button>
+            <button
+              onClick={() => setSelectedTab('late')}
+              className={`pb-4 text-sm font-medium border-b-2 whitespace-nowrap ${
+                selectedTab === 'late'
+                  ? 'border-yellow-500 text-yellow-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Retards
+            </button>
+            <button
+              onClick={() => setSelectedTab('absent')}
+              className={`pb-4 text-sm font-medium border-b-2 whitespace-nowrap ${
+                selectedTab === 'absent'
+                  ? 'border-red-500 text-red-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Absences
+            </button>
+          </div>
+        </div>
+        
+        {/* Filtres temporels */}
+        <div className="hidden md:flex justify-between items-center mb-6">
+          <div className="relative inline-block">
+            <button
+              onClick={() => setShowTimeFilterDropdown(!showTimeFilterDropdown)}
+              className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50"
+            >
+              <Calendar className="w-4 h-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">
+                {timeFilterOptions.find((o) => o.id === timeFilter)?.label}
+              </span>
+              <ChevronDown className="w-4 h-4 text-gray-500" />
+            </button>
+            
+            {showTimeFilterDropdown && (
+              <div className="origin-top-left absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                <div className="py-1" role="menu" aria-orientation="vertical">
+                  {timeFilterOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() => {
+                        setTimeFilter(option.id);
+                        setShowTimeFilterDropdown(false);
+                      }}
+                      className={`block w-full text-left px-4 py-2 text-sm ${
+                        timeFilter === option.id
+                          ? 'bg-orange-50 text-orange-700'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                      role="menuitem"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
-          </Card>
-        </div>
-
-        {/* Filters Card - Version Desktop */}
-        <div className="hidden md:block">
-          <Card className="relative p-6 bg-white shadow-xl rounded-3xl overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-full filter blur-3xl opacity-30"></div>
+          </div>
+          
+          <div className="flex items-center space-x-4">
             <div className="relative">
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center space-x-4">
-                  <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-2xl shadow-lg">
-                    <Filter className="w-5 h-5 text-white" />
-                  </div>
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    Filtres Avancés
-                  </h2>
-                </div>
-                <button
-                  onClick={resetFilters}
-                  className="flex items-center space-x-2 px-6 py-3 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl group"
-                >
-                  <RefreshCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
-                  <span>Réinitialiser</span>
-                </button>
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-gray-400" />
               </div>
-              <FilterInputs />
+              <input
+                type="text"
+                placeholder="Rechercher par nom ou matricule..."
+                className="block w-64 rounded-lg border-gray-300 pl-10 focus:ring-orange-500 focus:border-orange-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
-          </Card>
-        </div>
-
-        {/* Stats and Chart Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
-          {/* Stats Card */}
-          <Card className="relative p-4 sm:p-6 bg-white shadow-xl rounded-3xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-full filter blur-3xl opacity-30"></div>
-            <div className="relative">
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-2 sm:p-3 rounded-2xl shadow-lg">
-                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-800">
-                  Statistiques en direct
-                </h3>
-              </div>
-              <Stats stats={stats} />
-            </div>
-          </Card>
-
-          {/* Chart Card */}
-          <Card className="relative p-4 sm:p-6 bg-white shadow-xl rounded-3xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-full filter blur-3xl opacity-30"></div>
-            <div className="relative">
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-2 sm:p-3 rounded-2xl shadow-lg">
-                  <BarChart2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-800">
-                  Analyse des présences
-                </h3>
-              </div>
-              <div className="h-48 sm:h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
-                    <XAxis 
-                      dataKey="name" 
-                      tick={{ fontSize: window.innerWidth < 768 ? 12 : 14 }}
-                    />
-                    <YAxis
-                      tick={{ fontSize: window.innerWidth < 768 ? 12 : 14 }}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'white',
-                        border: 'none',
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                        fontSize: window.innerWidth < 768 ? '12px' : '14px'
+            
+            <div className="relative inline-block">
+              <button
+                onClick={() => setShowReferentielDropdown(!showReferentielDropdown)}
+                className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50"
+              >
+                <Filter className="w-4 h-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-700">
+                  {referentielFilter || 'Tous les référentiels'}
+                </span>
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              </button>
+              
+              {showReferentielDropdown && (
+                <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                  <div className="py-1" role="menu" aria-orientation="vertical">
+                    <button
+                      onClick={() => {
+                        setReferentielFilter('');
+                        setShowReferentielDropdown(false);
                       }}
-                    />
-                    <Legend />
-                    <Bar 
-                      dataKey="value" 
-                      fill="url(#colorGradient)" 
-                      radius={[8, 8, 0, 0]} 
-                    />
-                    <defs>
-                      <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#FF7900" />
-                        <stop offset="100%" stopColor="#FFB066" />
-                      </linearGradient>
-                    </defs>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+                      className={`block w-full text-left px-4 py-2 text-sm ${
+                        referentielFilter === ''
+                          ? 'bg-orange-50 text-orange-700'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                      role="menuitem"
+                    >
+                      Tous les référentiels
+                    </button>
+                    {referentiels.map((ref) => (
+                      <button
+                        key={ref}
+                        onClick={() => {
+                          setReferentielFilter(ref);
+                          setShowReferentielDropdown(false);
+                        }}
+                        className={`block w-full text-left px-4 py-2 text-sm ${
+                          referentielFilter === ref
+                            ? 'bg-orange-50 text-orange-700'
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                        role="menuitem"
+                      >
+                        {ref}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </Card>
+          </div>
         </div>
-
-        {/* Presence Table Card */}
-        <Card className="relative p-4 sm:p-6 bg-white shadow-xl rounded-3xl overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-full filter blur-3xl opacity-30"></div>
+        
+        {/* Filtres mobile */}
+        <div className="md:hidden mb-6 space-y-4">
+          <div className="flex space-x-2 overflow-x-auto pb-2 hide-scrollbar">
+            {timeFilterOptions.map((option) => (
+              <button
+                key={option.id}
+                onClick={() => setTimeFilter(option.id)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap ${
+                  timeFilter === option.id
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          
           <div className="relative">
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-2 sm:p-3 rounded-2xl shadow-lg">
-                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-800">
-                Liste des présences
-              </h3>
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400" />
             </div>
-            <div className="overflow-x-auto -mx-4 sm:mx-0">
-              <div className="inline-block min-w-full align-middle">
-                <div className="overflow-hidden border border-gray-200 sm:rounded-xl">
-                  <PresenceTable 
-                    presences={presences} 
-                    isLoading={isLoading} 
-                  />
+            <input
+              type="text"
+              placeholder="Rechercher apprenant..."
+              className="block w-full rounded-lg border-gray-300 pl-10 focus:ring-orange-500 focus:border-orange-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          
+          <select
+            className="block w-full rounded-lg border-gray-300 focus:ring-orange-500 focus:border-orange-500"
+            value={referentielFilter}
+            onChange={(e) => setReferentielFilter(e.target.value)}
+          >
+            <option value="">Tous les référentiels</option>
+            {referentiels.map((ref) => (
+              <option key={ref} value={ref}>
+                {ref}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        {/* Contenu principal */}
+        {selectedTab === 'overview' ? (
+          <>
+            {/* Cartes de stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div 
+                className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-xl transition-shadow cursor-pointer"
+                onClick={() => {
+                  setSelectedTab('present');
+                  setSelectedStatus('present');
+                }}
+              >
+                <div className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-green-100 text-green-500">
+                      <Check className="h-6 w-6" />
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-sm font-medium text-gray-500">Présents</h3>
+                      <div className="flex items-end space-x-2">
+                        <p className="text-2xl font-bold text-gray-900">{stats.present}</p>
+                        <p className="text-sm text-gray-500">
+                          {totalCount > 0 ? `(${Math.round((stats.present / totalCount) * 100)}%)` : '(0%)'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-green-500 rounded-full"
+                      style={{ width: totalCount > 0 ? `${(stats.present / totalCount) * 100}%` : '0%' }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div 
+                className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-xl transition-shadow cursor-pointer"
+                onClick={() => {
+                  setSelectedTab('late');
+                  setSelectedStatus('late');
+                }}
+              >
+                <div className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-yellow-100 text-yellow-500">
+                      <Clock className="h-6 w-6" />
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-sm font-medium text-gray-500">Retards</h3>
+                      <div className="flex items-end space-x-2">
+                        <p className="text-2xl font-bold text-gray-900">{stats.late}</p>
+                        <p className="text-sm text-gray-500">
+                          {totalCount > 0 ? `(${Math.round((stats.late / totalCount) * 100)}%)` : '(0%)'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-yellow-500 rounded-full"
+                      style={{ width: totalCount > 0 ? `${(stats.late / totalCount) * 100}%` : '0%' }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div 
+                className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-xl transition-shadow cursor-pointer"
+                onClick={() => {
+                  setSelectedTab('absent');
+                  setSelectedStatus('absent');
+                }}
+              >
+                <div className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-red-100 text-red-500">
+                      <AlertTriangle className="h-6 w-6" />
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-sm font-medium text-gray-500">Absents</h3>
+                      <div className="flex items-end space-x-2">
+                        <p className="text-2xl font-bold text-gray-900">{stats.absent}</p>
+                        <p className="text-sm text-gray-500">
+                          {totalCount > 0 ? `(${Math.round((stats.absent / totalCount) * 100)}%)` : '(0%)'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-red-500 rounded-full"
+                      style={{ width: totalCount > 0 ? `${(stats.absent / totalCount) * 100}%` : '0%' }}
+                    ></div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </Card>
-
-        {/* Mobile Quick Actions */}
-        <div className="fixed bottom-0 left-0 right-0 md:hidden bg-white border-t border-gray-200 p-4 z-50">
-          <div className="flex justify-around max-w-md mx-auto">
-            <button
-              onClick={() => setMobileFiltersOpen(true)}
-              className="flex flex-col items-center space-y-1"
-            >
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Filter className="w-5 h-5 text-orange-500" />
+            
+            {/* Graphiques */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <div className="bg-white rounded-2xl p-6 shadow-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Répartition des présences</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pieChartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={isMobile ? 40 : 60}
+                        outerRadius={isMobile ? 80 : 100}
+                        paddingAngle={2}
+                        dataKey="value"
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        labelLine={false}
+                      >
+                        {pieChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value) => [`${value} apprenants`, '']}
+                        contentStyle={{
+                          backgroundColor: 'white',
+                          borderRadius: '8px',
+                          border: 'none',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mt-4">
+                  {pieChartData.map((entry) => (
+                    <div 
+                      key={entry.name}
+                      className="flex items-center space-x-2 cursor-pointer"
+                      onClick={() => openDetailsModal(entry.name.toLowerCase().replace('s', ''))}
+                    >
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
+                      <div className="text-sm text-gray-600">{entry.name}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <span className="text-xs text-gray-600">Filtres</span>
-            </button>
-            <button
-              onClick={resetFilters}
-              className="flex flex-col items-center space-y-1"
-            >
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <RefreshCcw className="w-5 h-5 text-orange-500" />
+              
+              <div className="bg-white rounded-2xl p-6 shadow-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Tendances par référentiel</h3>
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                  </div>
+                ) : (
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={[
+                          { name: 'RefDigital', present: 25, late: 5, absent: 3 },
+                          { name: 'DevWeb', present: 30, late: 8, absent: 4 },
+                          { name: 'DevData', present: 22, late: 6, absent: 2 },
+                          { name: 'AWS', present: 18, late: 3, absent: 2 },
+                          { name: 'Hackeuse', present: 20, late: 4, absent: 1 },
+                        ]}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                       <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} />
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'white',
+                            borderRadius: '8px',
+                            border: 'none',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                          }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: 12 }} />
+                        <Bar dataKey="present" name="Présents" fill={COLORS.present} radius={[4, 4, 0, 0]} barSize={isMobile ? 12 : 20} />
+                        <Bar dataKey="late" name="Retards" fill={COLORS.late} radius={[4, 4, 0, 0]} barSize={isMobile ? 12 : 20} />
+                        <Bar dataKey="absent" name="Absents" fill={COLORS.absent} radius={[4, 4, 0, 0]} barSize={isMobile ? 12 : 20} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
               </div>
-              <span className="text-xs text-gray-600">Réinitialiser</span>
-            </button>
-            <button className="flex flex-col items-center space-y-1">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <BarChart2 className="w-5 h-5 text-orange-500" />
+            </div>
+            
+            {/* Tableau récapitulatif */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+              <div className="p-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">Récapitulatif des apprenants</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {filteredPresences.length} apprenant{filteredPresences.length !== 1 ? 's' : ''} trouvé{filteredPresences.length !== 1 ? 's' : ''}
+                </p>
               </div>
-              <span className="text-xs text-gray-600">Stats</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Filters Drawer */}
-      {mobileFiltersOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setMobileFiltersOpen(false)} />
-          <div className="fixed inset-y-0 right-0 w-full max-w-xs bg-white shadow-xl">
-            <div className="h-full flex flex-col">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900">Filtres</h2>
+              
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Apprenant
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Matricule
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Référentiel
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Statut
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Arrivée
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {currentData.map((presence) => (
+                      <tr key={presence.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center">
+                              <User className="h-6 w-6 text-orange-500" />
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">
+                                {presence.user.firstName} {presence.user.lastName}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{presence.user.matricule}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{presence.user.referentiel}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            {getStatusIcon(presence.status)}
+                            <span className="ml-2">{getStatusLabel(presence.status)}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {presence.arrivalTime || '-'}
+                        </td>
+                      </tr>
+                    ))}
+                    
+                    {currentData.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500">
+                          {isLoading ? (
+                            <div className="flex justify-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                            </div>
+                          ) : (
+                            'Aucun résultat trouvé'
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Pagination */}
+              {filteredPresences.length > 0 && (
+                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                  <div className="flex-1 flex justify-between sm:hidden">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                        currentPage === 1
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-white text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      Précédent
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                        currentPage === totalPages
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-white text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      Suivant
+                    </button>
+                  </div>
+                  <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm text-gray-700">
+                        Affichage de <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> à{' '}
+                        <span className="font-medium">
+                          {Math.min(currentPage * itemsPerPage, filteredPresences.length)}
+                        </span>{' '}
+                        sur <span className="font-medium">{filteredPresences.length}</span> résultats
+                      </p>
+                    </div>
+                    <div>
+                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                        <button
+                          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                          className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                            currentPage === 1
+                              ? 'text-gray-300 cursor-not-allowed'
+                              : 'text-gray-500 hover:bg-gray-50'
+                          }`}
+                        >
+                          <ChevronLeft className="h-5 w-5" />
+                        </button>
+                        
+                        {[...Array(totalPages)].map((_, index) => (
+                          <button
+                            key={index + 1}
+                            onClick={() => setCurrentPage(index + 1)}
+                            className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
+                              currentPage === index + 1
+                                ? 'bg-orange-50 border-orange-500 text-orange-600 z-10'
+                                : 'bg-white text-gray-500 hover:bg-gray-50'
+                            }`}
+                          >
+                            {index + 1}
+                          </button>
+                        ))}
+                        
+                        <button
+                          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                          disabled={currentPage === totalPages}
+                          className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                            currentPage === totalPages
+                              ? 'text-gray-300 cursor-not-allowed'
+                              : 'text-gray-500 hover:bg-gray-50'
+                          }`}
+                        >
+                          <ChevronRight className="h-5 w-5" />
+                        </button>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {selectedTab === 'present'
+                    ? 'Liste des présents'
+                    : selectedTab === 'late'
+                    ? 'Liste des retards'
+                    : 'Liste des absents'}
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {filteredPresences.length} apprenant{filteredPresences.length !== 1 ? 's' : ''} trouvé{filteredPresences.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setSelectedTab('overview');
+                  setSelectedStatus('');
+                }}
+                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition duration-150"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Retour</span>
+              </button>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Apprenant
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Matricule
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Référentiel
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Arrivée
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {currentData.map((presence) => (
+                    <tr key={presence.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center">
+                            <User className="h-6 w-6 text-orange-500" />
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {presence.user.firstName} {presence.user.lastName}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{presence.user.matricule}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{presence.user.referentiel}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {presence.arrivalTime || '-'}
+                      </td>
+                    </tr>
+                  ))}
+                  
+                  {currentData.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500">
+                        {isLoading ? (
+                          <div className="flex justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                          </div>
+                        ) : (
+                          `Aucun apprenant ${
+                            selectedTab === 'present' ? 'présent' : selectedTab === 'late' ? 'en retard' : 'absent'
+                          } trouvé`
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Pagination */}
+            {filteredPresences.length > 0 && (
+              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                <div className="flex-1 flex justify-between sm:hidden">
                   <button
-                    onClick={() => setMobileFiltersOpen(false)}
-                    className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                      currentPage === 1
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
                   >
-                    <span className="sr-only">Fermer</span>
-                    <span className="text-2xl">&times;</span>
+                    Précédent
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                      currentPage === totalPages
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    Suivant
                   </button>
                 </div>
+                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      Affichage de <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> à{' '}
+                      <span className="font-medium">
+                        {Math.min(currentPage * itemsPerPage, filteredPresences.length)}
+                      </span>{' '}
+                      sur <span className="font-medium">{filteredPresences.length}</span> résultats
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                      <button
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                          currentPage === 1
+                            ? 'text-gray-300 cursor-not-allowed'
+                            : 'text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </button>
+                      
+                      {[...Array(totalPages)].map((_, index) => (
+                        <button
+                          key={index + 1}
+                          onClick={() => setCurrentPage(index + 1)}
+                          className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
+                            currentPage === index + 1
+                              ? 'bg-orange-50 border-orange-500 text-orange-600 z-10'
+                              : 'bg-white text-gray-500 hover:bg-gray-50'
+                          }`}
+                        >
+                          {index + 1}
+                        </button>
+                      ))}
+                      
+                      <button
+                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                          currentPage === totalPages
+                            ? 'text-gray-300 cursor-not-allowed'
+                            : 'text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </button>
+                    </nav>
+                  </div>
+                </div>
               </div>
-              <div className="flex-1 overflow-y-auto p-4">
-                <FilterInputs />
+            )}
+          </div>
+        )}
+      </main>
+      
+      {/* Modal de détails */}
+      {showDetailsModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={() => setShowDetailsModal(false)}></div>
+            
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            
+            <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg leading-6 font-semibold text-gray-900" id="modal-title">
+                        {detailsData.title} - {detailsData.data.length} apprenants
+                      </h3>
+                      <button
+                        onClick={() => setShowDetailsModal(false)}
+                        className="bg-white rounded-full p-1 hover:bg-gray-100"
+                      >
+                        <X className="h-6 w-6 text-gray-500" />
+                      </button>
+                    </div>
+                    
+                    <div className="mt-4 max-h-96 overflow-y-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50 sticky top-0">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Apprenant
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Matricule
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Référentiel
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Arrivée
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {detailsData.data.map((presence, index) => (
+                            <tr key={index} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="ml-4">
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {presence.user.firstName} {presence.user.lastName}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900">{presence.user.matricule}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900">{presence.user.referentiel}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {presence.arrivalTime || '-'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="p-4 border-t border-gray-200">
+              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button
-                  onClick={resetFilters}
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-orange-500 text-white rounded-xl shadow-lg hover:bg-orange-600 transition-colors duration-200"
+                  type="button"
+                  onClick={() => setShowDetailsModal(false)}
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                 >
-                  <RefreshCcw className="w-4 h-4" />
-                  <span>Réinitialiser les filtres</span>
+                  Fermer
+                </button>
+                <button
+                  type="button"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-orange-600 text-base font-medium text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 sm:ml-3 sm:w-auto sm:text-sm"
+                >
+                  <Download className="h-5 w-5 mr-2" />
+                  Exporter
                 </button>
               </div>
             </div>
@@ -396,7 +1116,7 @@ function AdminDashboard() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default AdminDashboard
+export default AdminDashboard;
