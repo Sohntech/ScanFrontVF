@@ -21,7 +21,7 @@ export interface User {
 }
 
 export interface Presence {
-  scanTime: string | number | Date;
+  scanTime: string;
   id: string;
   status: string;
   arrivalTime?: string;

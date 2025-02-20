@@ -720,8 +720,8 @@ function AdminDashboard() {
                       <tr key={presence.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center">
-                              <User className="h-6 w-6 text-orange-500" />
+                            <div className="flex-shrink-0 h-10 w-10  flex items-center justify-center">
+                              <img className='rounded-full h-10 w-10 ' src={presence.user.photoUrl} alt="photo_de_profil" />
                             </div>
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900">
@@ -743,7 +743,7 @@ function AdminDashboard() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {presence.arrivalTime || '-'}
+                        {new Date(presence.scanTime).toLocaleString()}
                         </td>
                       </tr>
                     ))}
@@ -899,7 +899,7 @@ function AdminDashboard() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center">
-                            <User className="h-6 w-6 text-orange-500" />
+                          <img className='rounded-full h-10 w-10 ' src={presence.user.photoUrl} alt="photo_de_profil" />
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
@@ -915,7 +915,7 @@ function AdminDashboard() {
                         <div className="text-sm text-gray-900">{presence.user.referentiel}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {presence.arrivalTime || '-'}
+                        {new Date(presence.scanTime).toLocaleString()}
                       </td>
                     </tr>
                   ))}
@@ -1085,7 +1085,7 @@ function AdminDashboard() {
                                 <div className="text-sm text-gray-900">{presence.user.referentiel}</div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {presence.arrivalTime || '-'}
+                              {new Date(presence.scanTime).toLocaleString()}
                               </td>
                             </tr>
                           ))}
