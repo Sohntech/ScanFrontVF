@@ -20,7 +20,6 @@ import {
   Users,
   Clock,
   X,
-  User,
   AlertTriangle,
   Check,
   ChevronDown,
