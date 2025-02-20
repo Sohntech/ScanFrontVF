@@ -21,10 +21,12 @@ export interface User {
 }
 
 export interface Presence {
+  scanTime: string | number | Date;
   id: string;
   status: string;
   arrivalTime?: string;
   user: {
+    email: string;
     firstName: string;
     lastName: string;
     matricule: string;
