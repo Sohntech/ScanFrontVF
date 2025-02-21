@@ -299,7 +299,6 @@ const VigilDashboard = () => {
                           <span className="text-sm">Statut:</span>
                         </div>
                         <Badge
-                          variant="secondary"
                           className={`${getStatusColor(studentInfo.status)} capitalize px-3 py-1`}
                         >
                           {studentInfo.status.toLowerCase()}

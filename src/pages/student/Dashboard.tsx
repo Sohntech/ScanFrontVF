@@ -54,7 +54,7 @@ function StudentDashboard() {
     <div className="min-h-screen bg-transparent">
       <div className="max-w-7xl mx-auto p-4 space-y-6">
         {/* Header Section - Simplified and Modern */}
-        <div className="bg-orange-500 bg-gradient 2-r from-emerald 600 to-emerald-700 rounded-2xl shadow-lg p-6">
+        <div className="bg-orange-500 bg-gradient 2-r from-orange-600 to-orange-700 rounded-2xl shadow-lg p-6">
           <h1 className="text-2xl font-bold text-white">
             Tableau de Bord
           </h1>
@@ -70,13 +70,13 @@ function StudentDashboard() {
                 <div className="absolute inset-0 opacity-5">
                   <div className="grid grid-cols-8 grid-rows-8 gap-4 h-full">
                     {Array(64).fill(null).map((_, i) => (
-                      <div key={i} className="bg-emerald-500 rounded-full"></div>
+                      <div key={i} className="bg-orange-500 rounded-full"></div>
                     ))}
                   </div>
                 </div>
                 
                 <div className="relative p-6 flex flex-col items-center justify-center h-full space-y-6">
-                  <div className="bg-emerald-500 text-white p-4 rounded-full shadow-lg">
+                  <div className="bg-orange-500 text-white p-4 rounded-full shadow-lg">
                     <QrCode className="w-8 h-8" />
                   </div>
                   
@@ -85,22 +85,26 @@ function StudentDashboard() {
                   </h2>
                   
                   {user?.qrCode && (
-                    <div className="bg-white p-6 rounded-2xl shadow-xl border-2 border-emerald-100 transform hover:scale-105 transition-transform duration-300">
+                    <div className="bg-white p-6 sc rounded-2xl shadow-xl border-2 border-orange-100 transform hover:scale-105 transition-transform duration-300">
                       <img 
                         src={user.qrCode} 
                         alt="QR Code" 
-                        className="w-full max-w-[240px] h-auto"
+                        className="w-full scale-125  max-w-[240px] h-auto"
                       />
                     </div>
                   )}
                   
                   <div className="text-center space-y-2">
-                    <p className="text-emerald-600 font-medium">
+                    <p className="text-orange-600 font-medium">
                       Code de présence personnel
                     </p>
-                    <p className="text-sm text-gray-500">
-                      Actualisé toutes les 24 heures
+                    <p>
+                      <span>
+                        {user?.matricule}
+                      </span>
+                    
                     </p>
+                   
                   </div>
                 </div>
               </div>
@@ -117,7 +121,7 @@ function StudentDashboard() {
                     alt=""
                     className="w-24 h-24 rounded-2xl object-cover shadow-lg ring-4 ring-emerald-50"
                   />
-                  <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-2 rounded-xl shadow-lg">
+                  <div className="absolute -bottom-2 -right-2 bg-orange-500 text-white p-2 rounded-xl shadow-lg">
                     <GraduationCap className="w-5 h-5" />
                   </div>
                 </div>
@@ -127,16 +131,16 @@ function StudentDashboard() {
                     <h2 className="text-2xl font-bold text-gray-900">
                       {user?.firstName} {user?.lastName}
                     </h2>
-                    <p className="text-emerald-600 font-medium">{user?.referentiel}</p>
+                    <p className="text-orange-600 font-medium">{user?.referentiel}</p>
                   </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl">
-                      <Mail className="w-5 h-5 text-emerald-500" />
+                      <Mail className="w-5 h-5 text-orange-500" />
                       <span className="text-sm text-gray-600 truncate">{user?.email}</span>
                     </div>
                     <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl">
-                      <IdCard className="w-5 h-5 text-emerald-500" />
+                      <IdCard className="w-5 h-5 text-orange-500" />
                       <span className="text-sm text-gray-600">#{user?.matricule}</span>
                     </div>
                   </div>
@@ -152,7 +156,7 @@ function StudentDashboard() {
               <Card className="bg-white shadow-lg rounded-2xl p-6">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="bg-emerald-500 p-2 rounded-xl text-white">
+                    <div className="bg-orange-500 p-2 rounded-xl text-white">
                       <Calendar className="w-5 h-5" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -187,7 +191,7 @@ function StudentDashboard() {
               <Card className="bg-white shadow-lg rounded-2xl p-6">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="bg-emerald-500 p-2 rounded-xl text-white">
+                    <div className="bg-orange-500 p-2 rounded-xl text-white">
                       <Clock className="w-5 h-5" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -229,7 +233,7 @@ function StudentDashboard() {
         {/* Presence History - Simplified */}
         <Card className="bg-white shadow-lg rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-6">
-            <div className="bg-emerald-500 p-2 rounded-xl text-white">
+            <div className="bg-orange-500 p-2 rounded-xl text-white">
               <Clock className="w-5 h-5" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900">
