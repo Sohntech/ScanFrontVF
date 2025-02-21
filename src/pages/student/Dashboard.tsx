@@ -119,7 +119,7 @@ function StudentDashboard() {
                   <img
                     src={user?.photoUrl || 'https://via.placeholder.com/100'}
                     alt=""
-                    className="w-24 h-24 rounded-2xl object-cover shadow-lg ring-4 ring-emerald-50"
+                    className="w-24 h-24 rounded-2xl object-cover shadow-lg ring-4 ring-orange-50"
                   />
                   <div className="absolute -bottom-2 -right-2 bg-orange-500 text-white p-2 rounded-xl shadow-lg">
                     <GraduationCap className="w-5 h-5" />
