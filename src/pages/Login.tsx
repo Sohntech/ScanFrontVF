@@ -139,7 +139,7 @@ function Login() {
                 >
                   <div className="h-8 sm:h-10 md:h-12 lg:h-16">
                     <img
-                      src="https://womeninbusiness.hub.brussels/content/uploads/2024/07/logo_orangedigitalcenter.png"
+                      src="https://res.cloudinary.com/dxernpnkd/image/upload/v1740074459/phdwopu68sbb9ige7uic.png"
                       alt="Orange Digital Center"
                       className="h-full object-contain"
                     />
