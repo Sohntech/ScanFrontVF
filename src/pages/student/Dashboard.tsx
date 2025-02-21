@@ -245,7 +245,6 @@ function StudentDashboard() {
               <thead>
                 <tr className="border-b border-gray-100">
                   <th className="py-4 px-4 text-left text-sm font-medium text-gray-500">Date</th>
-                  <th className="py-4 px-4 text-left text-sm font-medium text-gray-500">Cours</th>
                   <th className="py-4 px-4 text-left text-sm font-medium text-gray-500">Statut</th>
                 </tr>
               </thead>
@@ -256,11 +255,9 @@ function StudentDashboard() {
                     className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
                   >
                     <td className="py-4 px-4 text-sm text-gray-600">
-                      {new Date(presence.createdAt).toLocaleDateString()}
+                      {new Date(presence.createdAt).toLocaleString()}
                     </td>
-                    <td className="py-4 px-4 text-sm text-gray-600">
-                      {presence.subject}
-                    </td>
+                    
                     <td className="py-4 px-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                         ${presence.status.toLowerCase() === 'present' ? 'bg-emerald-100 text-emerald-800' :
