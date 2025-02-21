@@ -62,7 +62,7 @@ function StudentDashboard() {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* QR Code Section - Enhanced and Prominent */}
+          {/* QR Code Section - Enhanced and Larger */}
           <div className="lg:col-span-4 lg:row-span-2 order-1 lg:order-2">
             <Card className="h-full bg-white shadow-xl rounded-2xl overflow-hidden">
               <div className="relative h-full">
@@ -77,7 +77,7 @@ function StudentDashboard() {
                 
                 <div className="relative p-6 flex flex-col items-center justify-center h-full space-y-6">
                   <div className="bg-orange-500 text-white p-4 rounded-full shadow-lg">
-                    <QrCode className="w-8 h-8" />
+                    <QrCode className="w-6 h-6" />
                   </div>
                   
                   <h2 className="text-2xl font-bold text-gray-900 text-center">
@@ -85,11 +85,11 @@ function StudentDashboard() {
                   </h2>
                   
                   {user?.qrCode && (
-                    <div className="bg-white p-6 sc rounded-2xl shadow-xl border-2 border-orange-100 transform hover:scale-105 transition-transform duration-300">
+                    <div className="bg-white p-12 rounded-2xl shadow-xl border-2 border-orange-100 transform hover:scale-105 transition-transform duration-300 w-full flex justify-center">
                       <img 
                         src={user.qrCode} 
                         alt="QR Code" 
-                        className="w-full scale-125  max-w-[240px] h-auto"
+                        className="w-full max-w-[300px] h-auto scale-150"
                       />
                     </div>
                   )}
@@ -102,9 +102,7 @@ function StudentDashboard() {
                       <span>
                         {user?.matricule}
                       </span>
-                    
                     </p>
-                   
                   </div>
                 </div>
               </div>
