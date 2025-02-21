@@ -457,14 +457,14 @@ function AdminDashboard() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
+            <div className="relative flex items-center overflow-hidden rounded-lg border border-gray-300 bg-white shadow-sm">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                <Search className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 type="text"
                 placeholder="Rechercher (nom/matricule)"
-                className="block w-64 rounded-lg border-gray-300 pl-10 focus:ring-orange-500 focus:border-orange-500"
+                className="w-64 pl-10 pr-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -524,12 +524,13 @@ function AdminDashboard() {
             </div>
 
             {/* Ajout du filtre par date pour la version desktop */}
-            <div className="relative">
+            <div className="relative flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50">
+              <Calendar className="w-4 h-4 text-gray-500" />
               <input
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="block w-48 rounded-lg border-gray-300 focus:ring-orange-500 focus:border-orange-500"
+                className="w-48 rounded-lg border-gray-300 focus:ring-orange-500 focus:border-orange-500"
               />
             </div>
           </div>
@@ -553,21 +554,21 @@ function AdminDashboard() {
             ))}
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
+          <div className="relative flex items-center overflow-hidden rounded-lg border border-gray-300 bg-white shadow-sm">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+              <Search className="h-5 w-5 text-gray-400" />
             </div>
             <input
               type="text"
               placeholder="Rechercher apprenant..."
-              className="block w-full rounded-lg border-gray-300 pl-10 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full pl-10 pr-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
           <select
-            className="block w-full rounded-lg border-gray-300 focus:ring-orange-500 focus:border-orange-500"
+            className="block w-full rounded-lg border-gray-300 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-700 py-2 px-4 pr-8 leading-tight focus:outline-none"
             value={referentielFilter}
             onChange={(e) => setReferentielFilter(e.target.value)}
           >
@@ -581,8 +582,12 @@ function AdminDashboard() {
 
           {/* Ajout du filtre par date pour la version mobile */}
           <div className="relative">
+            <label htmlFor="dateFilter" className="sr-only">
+              Filtre par date
+            </label>
             <input
               type="date"
+              id="dateFilter"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
               className="block w-full rounded-lg border-gray-300 focus:ring-orange-500 focus:border-orange-500"
