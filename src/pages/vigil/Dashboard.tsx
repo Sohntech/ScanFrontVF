@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Camera, Users, Clock, Award } from 'lucide-react';
+import { Camera, Users, Clock, Award, AlertCircle, UserCircle2, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, PresenceTable } from '../../components/ui/';
+import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../components/ui/Dialog';
 import { toast } from 'react-hot-toast';
@@ -12,6 +13,8 @@ interface StudentInfo {
   student?: {
     name: string;
     class: string;
+    referential: string;
+    photoUrl?: string;
   };
   createdAt: string;
   status: string;
@@ -24,21 +27,33 @@ const VigilDashboard = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
+  const [lastScannedStudent, setLastScannedStudent] = useState<StudentInfo | null>(null);
   const videoRef = useRef(null);
 
+  // Récupérer les présences
+  const fetchPresences = async () => {
+    const today = new Date();
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+    const filter = {
+      startDate: startOfDay.toDateString(),
+      endDate: endOfDay.toDateString()
+    };
+    await dispatch(getPresences(filter)).unwrap();
+  };
+
   useEffect(() => {
-    const fetch = async () => {
-      const today = new Date();
-      const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-      const endOfDay = new Date(today.setHours(23, 59, 59, 999));
-      const filter = {
-        startDate: startOfDay.toDateString(),
-        endDate: endOfDay.toDateString()
-      };
-      await dispatch(getPresences(filter)).unwrap();
-    }
-    fetch();
+    fetchPresences();
   }, [dispatch]);
+
+  // Mettre à jour les données après un scan réussi
+  const handleSuccessfulScan = async (studentData: StudentInfo) => {
+    setLastScannedStudent(studentData);
+    setStudentInfo(studentData);
+    setShowScanner(false);
+    // Rafraîchir la liste des présences
+    await fetchPresences();
+  };
 
   useEffect(() => {
     if (!videoRef.current || !showScanner) return;
@@ -50,22 +65,16 @@ const VigilDashboard = () => {
         if (!isScan) {
           isScan = true;
           try {
-            await dispatch(estMarquerPresence(result.data))
-              .unwrap()
-              .then(async estMarque => {
-                if (estMarque) {
-                  toast.error('Vous êtes déjà marqué présent');
-                  isScan = false;
-                } else {
-                  await dispatch(scanPresence(result.data))
-                    .unwrap()
-                    .then(studentData => {
-                      setStudentInfo(studentData);
-                      setShowScanner(false);
-                      isScan = false;
-                    });
-                }
-              });
+            const estMarque = await dispatch(estMarquerPresence(result.data)).unwrap();
+
+            if (estMarque) {
+              toast.error('Cet apprenant est déjà marqué présent');
+              isScan = false;
+            } else {
+              const studentData = await dispatch(scanPresence(result.data)).unwrap();
+              await handleSuccessfulScan(studentData);
+              isScan = false;
+            }
           } catch (error) {
             toast.error('Erreur lors du scan');
             isScan = false;
@@ -87,14 +96,19 @@ const VigilDashboard = () => {
     };
   }, [dispatch, showScanner]);
 
-  const handleValidatePresence = () => {
-    setPoints(prevPoints => prevPoints + 1);
-    setStudentInfo(null);
-    toast.success('Présence validée +1 !');
+  const handleValidatePresence = async () => {
+    if (lastScannedStudent) {
+      setPoints(prevPoints => prevPoints + 1);
+      setStudentInfo(null);
+      toast.success('Présence validée +1 !');
+      // Rafraîchir la liste des présences
+      await fetchPresences();
+    }
   };
 
   const startScanning = () => {
     setShowScanner(true);
+    setStudentInfo(null);
   };
 
   const stats = presences.reduce(
@@ -107,6 +121,20 @@ const VigilDashboard = () => {
     },
     { present: 0, late: 0, absent: 0 }
   );
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'present':
+        return 'bg-green-100 text-green-800';
+      case 'late':
+        return 'bg-orange-100 text-orange-800';
+      case 'absent':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -218,33 +246,79 @@ const VigilDashboard = () => {
         </div>
 
         <Dialog open={studentInfo !== null} onOpenChange={() => setStudentInfo(null)}>
-          <DialogContent className="sm:max-w-md mx-4">
-            <DialogHeader className="border-b pb-3 sm:pb-4">
-              <DialogTitle className="text-base sm:text-lg">Information de l'apprenant</DialogTitle>
+          <DialogContent className="sm:max-w-lg mx-4">
+            <DialogHeader className="border-b pb-4">
+              <DialogTitle className="text-xl font-semibold">Validation de présence</DialogTitle>
             </DialogHeader>
             {studentInfo && (
-              <div className="py-3 sm:py-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Nom</p>
-                    <p className="text-sm sm:text-base font-medium">{studentInfo.student?.name}</p>
+              <div className="py-6">
+                <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                  {/* Photo de l'apprenant */}
+                  <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                    {studentInfo.student?.photoUrl ? (
+                      <img
+                        src={`data:image/jpeg;base64,${studentInfo.student.photoUrl}`}
+                        alt={studentInfo.student.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-orange-50">
+                        <UserCircle2 className="w-16 h-16 text-orange-300" />
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Classe</p>
-                    <p className="text-sm sm:text-base font-medium">{studentInfo.student?.class}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Heure d'arrivée</p>
-                    <p className="text-sm sm:text-base font-medium">{new Date(studentInfo.createdAt).toLocaleTimeString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Statut</p>
-                    <p className="text-sm sm:text-base font-medium text-orange-500">{studentInfo.status}</p>
+
+                  {/* Informations de l'apprenant */}
+                  <div className="flex-1 text-center sm:text-left">
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      {studentInfo.student?.name}
+                    </h3>
+
+                    <div className="mt-4 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                        <div className="flex items-center justify-center sm:justify-start gap-2 text-gray-500">
+                          <BookOpen className="w-4 h-4" />
+                          <span className="text-sm">Référentiel:</span>
+                        </div>
+                        <span className="font-medium">{studentInfo.student?.referential || "Non spécifié"}</span>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                        <div className="flex items-center justify-center sm:justify-start gap-2 text-gray-500">
+                          <Clock className="w-4 h-4" />
+                          <span className="text-sm">Heure d'arrivée:</span>
+                        </div>
+                        <span className="font-medium">
+                          {new Date(studentInfo.createdAt).toLocaleTimeString()}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                        <div className="flex items-center justify-center sm:justify-start gap-2 text-gray-500">
+                          <AlertCircle className="w-4 h-4" />
+                          <span className="text-sm">Statut:</span>
+                        </div>
+                        <Badge
+                          variant="secondary"
+                          className={`${getStatusColor(studentInfo.status)} capitalize px-3 py-1`}
+                        >
+                          {studentInfo.status.toLowerCase()}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <DialogFooter className="mt-4 sm:mt-6">
-                  <Button 
-                    className="w-full bg-orange-500 text-white hover:bg-orange-600 text-sm sm:text-base py-2 h-auto" 
+
+                <DialogFooter className="mt-8">
+                  <Button
+                    variant="outline"
+                    className="flex-1 sm:flex-none"
+                    onClick={() => setStudentInfo(null)}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    className="flex-1 sm:flex-none bg-orange-500 text-white hover:bg-orange-600"
                     onClick={handleValidatePresence}
                   >
                     Valider la présence
