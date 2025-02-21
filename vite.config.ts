@@ -12,7 +12,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://sascan2.onrender.com',
+        target: 'https://pointagebackend-production.up.railway.app',
         changeOrigin: true,
       },
     },
