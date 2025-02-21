@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://pointagebackend-production.up.railway.app/api',
+  baseURL: 'https://sascan2.onrender.com/api',
 })
 
 api.interceptors.request.use((config) => {
