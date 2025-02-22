@@ -31,7 +31,6 @@ import {
   X,
 } from "lucide-react";
 import { Presence } from "@/types/index";
-import DownloadButton from "../DownloadButton";
 import { generatePDF } from "@/lib/utils";
 
 // Theme colors
