@@ -239,12 +239,12 @@ function Login() {
                         Se souvenir de moi
                       </span>
                     </label>
-                    <button
+                    {/* <button
                       type="button"
                       className="text-xs sm:text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors focus:outline-none focus:underline"
                     >
                       Mot de passe oublié ?
-                    </button>
+                    </button> */}
                   </div>
 
                   {/* Login Button */}

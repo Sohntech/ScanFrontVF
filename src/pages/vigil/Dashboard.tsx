@@ -306,31 +306,21 @@ const VigilDashboard = () => {
                 <div className="relative">
                   <video
                     ref={videoRef}
-                    className="w-full aspect-[4/3] object-cover"
+                    className="w-full aspect-[8/8] object-cover"
                     autoPlay
                     muted
                     playsInline
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-64 h-64 border-2 border-orange-500 rounded-lg relative animate-pulse">
-                      <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-orange-500 rounded-tl-md"></div>
-                      <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-orange-500 rounded-tr-md"></div>
-                      <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-orange-500 rounded-bl-md"></div>
-                      <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-orange-500 rounded-br-md"></div>
-                    </div>
+                   
                   </div>
                   {isScanning && (
-                    <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg flex items-center gap-2 backdrop-blur-sm">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-xs sm:text-sm font-medium">
-                        Scanner actif
-                      </span>
+                    <div className="">
+                     
                     </div>
                   )}
                   <div className="absolute top-4 left-0 right-0 flex justify-center">
-                    <div className="bg-black/70 text-white px-4 py-2 rounded-lg text-sm backdrop-blur-sm">
-                      Positionnez le QR code dans le cadre
-                    </div>
+                   
                   </div>
                 </div>
               </CardContent>

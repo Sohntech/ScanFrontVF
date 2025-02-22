@@ -38,7 +38,7 @@ function Layout() {
                     {/* Logo principal avec transition */}
                     <img
                       className="h-8 w-auto md:h-10 transition-transform hover:scale-105"
-                      src="https://womeninbusiness.hub.brussels/content/uploads/2024/07/logo_orangedigitalcenter.png"
+                      src="https://res.cloudinary.com/dxernpnkd/image/upload/v1740074459/phdwopu68sbb9ige7uic.png"
                       alt="ODC"
                     />
                   </div>
