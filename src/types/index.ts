@@ -18,6 +18,7 @@ export interface User {
   qrCode?: string;
   createdAt: string;
   updatedAt: string;
+  presences?: any[]
 }
 
 export interface Presence {

@@ -2,35 +2,37 @@ import { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { getPresences } from "@/store/slices/presenceSlice";
 import {
+  ResponsiveContainer,
+  // CartesianGrid,
   // BarChart,
-  // Bar,
+  // Legend,
   PieChart,
-  Pie,
-  Cell,
   // XAxis,
   // YAxis,
-  // CartesianGrid,
   Tooltip,
-  // Legend,
-  ResponsiveContainer,
+  // Bar,
+  Cell,
+  Pie,
 } from "recharts";
 import {
+  AlertTriangle,
+  ChevronRight,
+  ChevronDown,
+  ChevronLeft,
+  RefreshCw,
   Calendar,
+  Download,
   Search,
+  Filter,
   Users,
   Clock,
-  X,
-  AlertTriangle,
   Check,
-  ChevronDown,
-  Filter,
-  RefreshCw,
   Menu,
-  Download,
-  ChevronLeft,
-  ChevronRight,
+  X,
 } from "lucide-react";
 import { Presence } from "@/types/index";
+import DownloadButton from "../DownloadButton";
+import { generatePDF } from "@/lib/utils";
 
 // Theme colors
 const COLORS = {
@@ -268,9 +270,29 @@ function AdminDashboard() {
     }
   };
 
+
+  const download = ()=>{
+    console.log(currentData);
+    const headers = ["Prenom et Nom", "Matricule", "Référentiel", "Status", "Heure", "Date"];
+    const datas =currentData.map(dt=>{
+      const date = new Date(dt.scanTime);
+      const dateFormat = date.toLocaleDateString("fr-FR"); // Exemple : "22/02/2025"
+      const heureFormat = date.toLocaleTimeString("fr-FR"); // Exemple : "14:30:15"
+      return [`${dt.user.firstName} ${dt.user.lastName}`, dt.user.matricule, dt.user.referentiel, dt.status, heureFormat, dateFormat];
+    });
+    generatePDF({
+      title: "La liste des présences",
+      headers,
+      data: datas,
+      filename: "liste-presences.pdf"
+    });
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       {/* Header Navigation */}
+
+
       <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
@@ -830,15 +852,25 @@ function AdminDashboard() {
 
             {/* Tableau récapitulatif */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Récapitulatif des apprenants
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  {filteredPresences.length} apprenant
-                  {filteredPresences.length !== 1 ? "s" : ""} trouvé
-                  {filteredPresences.length !== 1 ? "s" : ""}
-                </p>
+              <div className="flex justify-between">
+                <div className="p-6 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Récapitulatif des apprenants
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {filteredPresences.length} apprenant
+                    {filteredPresences.length !== 1 ? "s" : ""} trouvé
+                    {filteredPresences.length !== 1 ? "s" : ""}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2 px-4">
+                  <button onClick={download} className="text-gray-500 hover:text-gray-700">
+                      <i className="fas fa-download"></i>
+                  </button>
+                  <button className="text-gray-500 hover:text-gray-700">
+                      <i className="fas fa-ellipsis-v"></i>
+                  </button>
+              </div>
               </div>
 
               <div className="overflow-x-auto">

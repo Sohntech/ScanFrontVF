@@ -5,7 +5,7 @@ import { Presence } from '@/types/index'
 interface PresenceState {
   presences: Presence[];
   isLoading: boolean;
-  error: string | null;
+  error: string | null; 
 }
 
 const initialState: PresenceState = {

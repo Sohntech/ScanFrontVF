@@ -12,6 +12,7 @@ import {
 import { getProfile } from '@/store/slices/authSlice';
 import { GraduationCap, Mail, IdCard, Calendar, Clock, QrCode } from 'lucide-react';
 
+
 const COLORS = ['#10B981', '#F59E0B', '#EF4444'];
 
 function StudentDashboard() {
@@ -19,12 +20,14 @@ function StudentDashboard() {
   const { user } = useAppSelector((state) => state.auth);
   let { presences } = useAppSelector((state) => state.presence);
 
+  console.log(user, presences);
+
   // Ajouter un console.log pour voir la structure
   console.log('First presence:', presences[0]);
 
   // Ajouter une assertion de type
-  const typedPresences = presences as unknown as Array<{
-    createdAt: string;
+  const typedPresences = user?.presences ?? [] as unknown as Array<{
+    scanTime: string;
     subject: string;
     status: string;
   }>;
@@ -253,7 +256,7 @@ function StudentDashboard() {
                     className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
                   >
                     <td className="py-4 px-4 text-sm text-gray-600">
-                      {new Date(presence.createdAt).toLocaleString()}
+                      {new Date(presence.scanTime).toLocaleString()}
                     </td>
                     
                     <td className="py-4 px-4">

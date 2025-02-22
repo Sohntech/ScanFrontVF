@@ -36,7 +36,7 @@ import {
 } from "@/store/slices/presenceSlice";
 
 interface StudentInfo {
-  student?: {
+  user?: {
     firstName: string;
     lastName: string;
     matricule: string;
@@ -428,10 +428,10 @@ const VigilDashboard = () => {
                   {/* Photo et information de base de l'apprenant */}
                   <div className="flex flex-col items-center space-y-3 sm:w-1/3">
                     <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border-4 border-orange-100 shadow-md">
-                      {studentInfo.student?.photoUrl ? (
+                      {studentInfo.user?.photoUrl ? (
                         <img
-                          src={`data:image/jpeg;base64,${studentInfo.student.photoUrl}`}
-                          alt={`${studentInfo.student.firstName} ${studentInfo.student.lastName}`}
+                          src={studentInfo.user.photoUrl}
+                          alt={`${studentInfo.user.firstName} ${studentInfo.user.lastName}`}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -457,19 +457,19 @@ const VigilDashboard = () => {
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 flex flex-col sm:flex-row sm:items-center gap-1 justify-center sm:justify-start">
                         <span>
-                          {studentInfo.student?.firstName}{" "}
-                          {studentInfo.student?.lastName}
+                          {studentInfo.user?.firstName}{" "}
+                          {studentInfo.user?.lastName}
                         </span>
                       </h3>
-                      {studentInfo.student?.matricule && (
+                      {studentInfo.user?.matricule && (
                         <div className="text-sm text-gray-500 mt-1 flex items-center justify-center sm:justify-start gap-1">
                           <span className="font-medium">Matricule:</span>
-                          <span>{studentInfo.student.matricule}</span>
+                          <span>{studentInfo.user.matricule}</span>
                         </div>
                       )}
-                      {studentInfo.student?.email && (
+                      {studentInfo.user?.email && (
                         <div className="text-sm text-gray-500 mt-1 flex items-center justify-center sm:justify-start gap-1 overflow-hidden text-ellipsis">
-                          <span>{studentInfo.student.email}</span>
+                          <span>{studentInfo.user.email}</span>
                         </div>
                       )}
                     </div>
@@ -484,7 +484,7 @@ const VigilDashboard = () => {
                             Référentiel
                           </div>
                           <div className="font-medium text-gray-800 truncate">
-                            {studentInfo.student?.referentiel || "Non spécifié"}
+                            {studentInfo.user?.referentiel || "Non spécifié"}
                           </div>
                         </div>
                       </div>
