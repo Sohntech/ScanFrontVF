@@ -50,6 +50,7 @@ const COLORS = {
 // Available referentials
 const referentiels = ["RefDigital", "DevWeb", "DevData", "AWS", "Hackeuse"];
 
+
 // Filtering periods
 const timeFilterOptions = [
   { id: "day", label: "Aujourd'hui" },
