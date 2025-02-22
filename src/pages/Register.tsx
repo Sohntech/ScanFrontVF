@@ -1,10 +1,8 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { useAppDispatch } from '@/hooks/store';
 import { register as registerUser } from '@/store/slices/authSlice';
-// import type { RegisterData } from '@/types/index';
 import { Card, CardHeader, CardContent, CardDescription,  Button, Input, Label } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Mail, Lock, ChevronRight, AlertCircle, User, EyeOff, Eye } from 'lucide-react';

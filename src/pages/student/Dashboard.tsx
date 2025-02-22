@@ -18,12 +18,6 @@ const COLORS = ['#10B981', '#F59E0B', '#EF4444'];
 function StudentDashboard() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
-  let { presences } = useAppSelector((state) => state.presence);
-
-  console.log(user, presences);
-
-  // Ajouter un console.log pour voir la structure
-  console.log('First presence:', presences[0]);
 
   // Ajouter une assertion de type
   const typedPresences = user?.presences ?? [] as unknown as Array<{
