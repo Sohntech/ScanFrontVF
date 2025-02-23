@@ -3,14 +3,8 @@ import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { getPresences } from "@/store/slices/presenceSlice";
 import {
   ResponsiveContainer,
-  // CartesianGrid,
-  // BarChart,
-  // Legend,
   PieChart,
-  // XAxis,
-  // YAxis,
   Tooltip,
-  // Bar,
   Cell,
   Pie,
 } from "recharts";
@@ -272,7 +266,6 @@ function AdminDashboard() {
 
 
   const download = ()=>{
-    console.log(currentData);
     const headers = ["Prenom et Nom", "Matricule", "Référentiel", "Status", "Heure", "Date"];
     const datas =currentData.map(dt=>{
       const date = new Date(dt.scanTime);
