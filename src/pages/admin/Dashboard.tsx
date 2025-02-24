@@ -184,7 +184,7 @@ function AdminDashboard() {
   });
 
   // Pagination
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
   const totalPages = Math.ceil(filteredPresences.length / itemsPerPage);
   const currentData = filteredPresences.slice(
     (currentPage - 1) * itemsPerPage,
