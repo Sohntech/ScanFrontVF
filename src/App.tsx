@@ -6,6 +6,7 @@ import Layout from '@/components/Layout'
 import PrivateRoute from '@/components/PrivateRoute'
 import Login from '@/pages/Login'
 import Register from '@/pages/Register'
+import ResetPassword from '@/pages/ResetPassword'
 import AdminDashboard from '@/pages/admin/Dashboard'
 import VigilDashboard from '@/pages/vigil/Dashboard'
 import StudentDashboard from '@/pages/student/Dashboard'
@@ -24,6 +25,7 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       
       <Route path="/" element={<Layout />}>
         <Route index element={<Navigate to="/dashboard" replace />} />
