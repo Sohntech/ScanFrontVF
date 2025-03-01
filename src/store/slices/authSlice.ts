@@ -52,7 +52,7 @@ export const forgotPassword = createAsyncThunk('auth/forgotPassword', async (ema
 });
 
 // 🔹 Reset Password (Mise à jour du mot de passe)
-export const resetPassword = createAsyncThunk('auth/resetPassword', async ({ token, newPassword }: { token: string; newPassword: string }) => {
+export const resetPassword = createAsyncThunk('auth/resetPassword', async ({ token, newPassword }: { token: number; newPassword: string }) => {
   const response = await api.post('/auth/reset-password', { token, newPassword });
   return response.data;
 });

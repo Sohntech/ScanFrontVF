@@ -413,18 +413,7 @@ function Login() {
 
                         {/* Remember Me & Forgot Password */}
                         <div className="flex flex-col xs:flex-row sm:flex-row items-start xs:items-center sm:items-center justify-between gap-2 xs:gap-3 sm:gap-3 pt-1 pb-1">
-                          <label className="flex items-center gap-1 xs:gap-1.5 sm:gap-1.5 cursor-pointer group">
-                            <div className="relative flex items-center justify-center">
-                              <Input
-                                type="checkbox"
-                                className="h-3 w-3 xs:h-3.5 xs:w-3.5 rounded border-gray-300 text-orange-600 focus:ring-orange-500 transition-all duration-200 cursor-pointer"
-                              />
-                              <span className="absolute inset-0 group-hover:bg-orange-100/50 rounded transition-colors duration-200" />
-                            </div>
-                            <span className="text-xs sm:text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-200">
-                              Se souvenir de moi
-                            </span>
-                          </label>
+                          
                           <button
                             type="button"
                             onClick={toggleResetForm}
