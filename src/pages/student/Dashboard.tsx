@@ -418,12 +418,12 @@ function StudentDashboard() {
                   }}
                 >
                   {[3, 5].map(value => (
-                    <option key={value} value={value}>
+                    <option key={value} value={value}> 
                       {value}
-                    </option>
+                    </option> 
                   ))}
                 </select>
-                <span className="text-sm text-gray-500">par page</span>
+                <span className="text-sm text-gray-500">par page</span> 
               </div>
             </div>
           )}

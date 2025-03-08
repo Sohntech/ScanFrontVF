@@ -267,7 +267,7 @@ function AdminDashboard() {
 
   const download = ()=>{
     const headers = ["Prenom et Nom", "Matricule", "Référentiel", "Status", "Heure", "Date"];
-    const datas =currentData.map(dt=>{
+    const datas =filteredPresences.map(dt=>{
       const date = new Date(dt.scanTime);
       const dateFormat = date.toLocaleDateString("fr-FR"); // Exemple : "22/02/2025"
       const heureFormat = date.toLocaleTimeString("fr-FR"); // Exemple : "14:30:15"
