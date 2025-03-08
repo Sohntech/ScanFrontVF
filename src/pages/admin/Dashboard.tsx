@@ -126,29 +126,8 @@ function AdminDashboard() {
     dateFilter,
   ]);
 
-  // Calculate statistics
-  const stats = presences.reduce(
-    (acc, presence) => {
-      const status = presence.status.toLowerCase();
-      if (status === "present") acc.present++;
-      else if (status === "late") acc.late++;
-      else if (status === "absent") acc.absent++;
-      return acc;
-    },
-    { present: 0, late: 0, absent: 0 }
-  );
-
-  const totalCount = stats.present + stats.late + stats.absent;
-
-  // Données pour les graphiques
-  const pieChartData = [
-    { name: "Présents", value: stats.present, color: COLORS.present },
-    { name: "Retards", value: stats.late, color: COLORS.late },
-    { name: "Absents", value: stats.absent, color: COLORS.absent },
-  ];
-
-  // Données filtrées pour le tableau
-  const filteredPresences = presences.filter((presence) => {
+   // Données filtrées pour le tableau
+   const filteredPresences = presences.filter((presence) => {
     // Filtre par référentiel si spécifié
     if (referentielFilter && presence.user.referentiel !== referentielFilter)
       return false;
@@ -190,6 +169,28 @@ function AdminDashboard() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+  // Calculate statistics
+  const stats = filteredPresences.reduce(
+    (acc, presence) => {
+      const status = presence.status.toLowerCase();
+      if (status === "present") acc.present++;
+      else if (status === "late") acc.late++;
+      else if (status === "absent") acc.absent++;
+      return acc;
+    },
+    { present: 0, late: 0, absent: 0 }
+  );
+
+  const totalCount = stats.present + stats.late + stats.absent;
+
+  // Données pour les graphiques
+  const pieChartData = [
+    { name: "Présents", value: stats.present, color: COLORS.present },
+    { name: "Retards", value: stats.late, color: COLORS.late },
+    { name: "Absents", value: stats.absent, color: COLORS.absent },
+  ];
+
+ 
 
   // Ouvrir le modal de détails
   const openDetailsModal = (status: string) => {
