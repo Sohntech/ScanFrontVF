@@ -1,3 +1,4 @@
+// src/pages/admin/Dashboard.tsx
 import { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { getPresences } from "@/store/slices/presenceSlice";
@@ -45,7 +46,6 @@ const COLORS = {
 // Available referentials
 const referentiels = ["RefDigital", "DevWeb", "DevData", "AWS", "Hackeuse"];
 
-
 // Filtering periods
 const timeFilterOptions = [
   { id: "day", label: "Aujourd'hui" },
@@ -74,7 +74,6 @@ function AdminDashboard() {
   }>({ title: "", data: [] });
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
-
   const [dateFilter, setDateFilter] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -89,13 +88,12 @@ function AdminDashboard() {
 
   // Get presences with applied filters
   useEffect(() => {
-    // Convert time filter to real dates for the API
     const now = new Date();
     let startDate = "";
     let endDate = now.toISOString().split("T")[0];
 
     if (timeFilter === "day") {
-      startDate = dateFilter; // Use the selected date for the day filter
+      startDate = dateFilter;
     } else if (timeFilter === "week") {
       const firstDayOfWeek = new Date(now);
       firstDayOfWeek.setDate(
@@ -113,7 +111,7 @@ function AdminDashboard() {
       status: selectedStatus,
       referentiel: referentielFilter,
       search: searchQuery,
-      date: dateFilter, // Include the date filter in the API call
+      date: dateFilter,
     };
 
     dispatch(getPresences(filters));
@@ -126,13 +124,11 @@ function AdminDashboard() {
     dateFilter,
   ]);
 
-   // Données filtrées pour le tableau
-   const filteredPresences = presences.filter((presence) => {
-    // Filtre par référentiel si spécifié
+  // Filtered data for the table
+  const filteredPresences = presences.filter((presence) => {
     if (referentielFilter && presence.user.referentiel !== referentielFilter)
       return false;
 
-    // Filtre par recherche
     if (searchQuery) {
       const searchLower = searchQuery.toLowerCase();
       const fullName =
@@ -143,7 +139,6 @@ function AdminDashboard() {
       }
     }
 
-    // Filtre par statut si sélectionné
     if (
       selectedStatus &&
       presence.status.toLowerCase() !== selectedStatus.toLowerCase()
@@ -151,7 +146,6 @@ function AdminDashboard() {
       return false;
     }
 
-    // Filtre par date
     const presenceDate = new Date(presence.scanTime)
       .toISOString()
       .split("T")[0];
@@ -169,6 +163,42 @@ function AdminDashboard() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+  const renderPagination = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5; // Nombre maximum de pages visibles
+    const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+  
+    if (startPage > 1) {
+      pageNumbers.push(1);
+      if (startPage > 2) pageNumbers.push('...'); // Ellipse
+    }
+  
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+  
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) pageNumbers.push('...'); // Ellipse
+      pageNumbers.push(totalPages);
+    }
+  
+    return pageNumbers.map((number, index) => (
+      <button
+        key={index}
+        onClick={() => setCurrentPage(Number(number))}
+        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
+          currentPage === Number(number)
+            ? "bg-orange-50 border-orange-500 text-orange-600 z-10"
+            : "bg-white text-gray-500 hover:bg-gray-50"
+        }`}
+        disabled={number === '...'}
+      >
+        {number}
+      </button>
+    ));
+  };
+
   // Calculate statistics
   const stats = filteredPresences.reduce(
     (acc, presence) => {
@@ -183,16 +213,14 @@ function AdminDashboard() {
 
   const totalCount = stats.present + stats.late + stats.absent;
 
-  // Données pour les graphiques
+  // Data for charts
   const pieChartData = [
     { name: "Présents", value: stats.present, color: COLORS.present },
     { name: "Retards", value: stats.late, color: COLORS.late },
     { name: "Absents", value: stats.absent, color: COLORS.absent },
   ];
 
- 
-
-  // Ouvrir le modal de détails
+  // Open details modal
   const openDetailsModal = (status: string) => {
     const statusLabel =
       status === "present"
@@ -211,17 +239,17 @@ function AdminDashboard() {
     setSelectedStatus(status);
   };
 
-  // Réinitialiser tous les filtres
+  // Reset all filters
   const resetFilters = () => {
     setTimeFilter("day");
     setReferentielFilter("");
     setSearchQuery("");
     setSelectedStatus("");
     setCurrentPage(1);
-    setDateFilter(new Date().toISOString().split("T")[0]); // Reset date filter to today
+    setDateFilter(new Date().toISOString().split("T")[0]);
   };
 
-  // Obtenir le label de couleur selon le statut
+  // Get status label
   const getStatusLabel = (status: string) => {
     switch (status.toLowerCase()) {
       case "present":
@@ -251,7 +279,7 @@ function AdminDashboard() {
     }
   };
 
-  // Obtenir l'icône selon le statut
+  // Get status icon
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
       case "present":
@@ -265,13 +293,12 @@ function AdminDashboard() {
     }
   };
 
-
-  const download = ()=>{
+  const download = () => {
     const headers = ["Prenom et Nom", "Matricule", "Référentiel", "Status", "Heure", "Date"];
-    const datas =filteredPresences.map(dt=>{
+    const datas = filteredPresences.map(dt => {
       const date = new Date(dt.scanTime);
-      const dateFormat = date.toLocaleDateString("fr-FR"); // Exemple : "22/02/2025"
-      const heureFormat = date.toLocaleTimeString("fr-FR"); // Exemple : "14:30:15"
+      const dateFormat = date.toLocaleDateString("fr-FR");
+      const heureFormat = date.toLocaleTimeString("fr-FR");
       return [`${dt.user.firstName} ${dt.user.lastName}`, dt.user.matricule, dt.user.referentiel, dt.status, heureFormat, dateFormat];
     });
     generatePDF({
@@ -285,9 +312,7 @@ function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       {/* Header Navigation */}
-
-
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
@@ -390,7 +415,7 @@ function AdminDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Tabs pour la navigation entre les vues */}
+        {/* Tabs for navigation between views */}
         <div className="mb-6 border-b border-gray-200">
           <div className="flex overflow-x-auto hide-scrollbar space-x-8">
             <button
@@ -433,12 +458,12 @@ function AdminDashboard() {
           </div>
         </div>
 
-        {/* Filtres temporels */}
+        {/* Temporal filters */}
         <div className="hidden md:flex justify-between items-center mb-6">
           <div className="relative inline-block">
             <button
               onClick={() => setShowTimeFilterDropdown(!showTimeFilterDropdown)}
-              className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50"
+              className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition duration-150"
             >
               <Calendar className="w-4 h-4 text-gray-500" />
               <span className="text-sm font-medium text-gray-700">
@@ -491,7 +516,7 @@ function AdminDashboard() {
                 onClick={() =>
                   setShowReferentielDropdown(!showReferentielDropdown)
                 }
-                className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50"
+                className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition duration-150"
               >
                 <Filter className="w-4 h-4 text-gray-500" />
                 <span className="text-sm font-medium text-gray-700">
@@ -539,7 +564,6 @@ function AdminDashboard() {
               )}
             </div>
 
-            {/* Ajout du filtre par date pour la version desktop */}
             <div className="relative flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50">
               <Calendar className="w-4 h-4 text-gray-500" />
               <input
@@ -552,69 +576,10 @@ function AdminDashboard() {
           </div>
         </div>
 
-        {/* Filtres mobile */}
-        <div className="md:hidden mb-6 space-y-4">
-          <div className="flex space-x-2 overflow-x-auto pb-2 hide-scrollbar">
-            {timeFilterOptions.map((option) => (
-              <button
-                key={option.id}
-                onClick={() => setTimeFilter(option.id)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap ${
-                  timeFilter === option.id
-                    ? "bg-orange-500 text-white"
-                    : "bg-gray-100 text-gray-700"
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="relative flex items-center overflow-hidden rounded-lg border border-gray-300 bg-white shadow-sm">
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Rechercher apprenant..."
-              className="w-full pl-10 pr-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          <select
-            className="block w-full rounded-lg border-gray-300 focus:ring-orange-500 focus:border-orange-500 bg-white text-gray-700 py-2 px-4 pr-8 leading-tight focus:outline-none"
-            value={referentielFilter}
-            onChange={(e) => setReferentielFilter(e.target.value)}
-          >
-            <option value="">Tous les référentiels</option>
-            {referentiels.map((ref) => (
-              <option key={ref} value={ref}>
-                {ref}
-              </option>
-            ))}
-          </select>
-
-          {/* Ajout du filtre par date pour la version mobile */}
-          <div className="relative">
-            <label htmlFor="dateFilter" className="sr-only">
-              Filtre par date
-            </label>
-            <input
-              type="date"
-              id="dateFilter"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="block w-full rounded-lg border-gray-300 focus:ring-orange-500 focus:border-orange-500"
-            />
-          </div>
-        </div>
-
-        {/* Contenu principal */}
+        {/* Main content */}
         {selectedTab === "overview" ? (
           <>
-            {/* Cartes de stats */}
+            {/* Stat cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               <div
                 className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-xl transition-shadow cursor-pointer"
@@ -749,7 +714,7 @@ function AdminDashboard() {
               </div>
             </div>
 
-            {/* Graphiques */}
+            {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               <div className="bg-white rounded-2xl p-6 shadow-lg">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -835,7 +800,7 @@ function AdminDashboard() {
                           <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse delay-300"></div>
                         </div>
                         <div className="px-4 py-2 border border-orange-200 rounded-lg bg-orange-50 text-sm text-orange-700">
-                          A suivre... 
+                          A suivre...
                         </div>
                       </div>
                     </ResponsiveContainer>
@@ -844,7 +809,7 @@ function AdminDashboard() {
               </div>
             </div>
 
-            {/* Tableau récapitulatif */}
+            {/* Summary table */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
               <div className="flex justify-between">
                 <div className="p-6 border-b border-gray-200">
@@ -859,12 +824,9 @@ function AdminDashboard() {
                 </div>
                 <div className="flex items-center space-x-2 px-4">
                   <button onClick={download} className="text-gray-500 hover:text-gray-700">
-                      <i className="fas fa-download"></i>
+                    <Download className="h-5 w-5" />
                   </button>
-                  <button className="text-gray-500 hover:text-gray-700">
-                      <i className="fas fa-ellipsis-v"></i>
-                  </button>
-              </div>
+                </div>
               </div>
 
               <div className="overflow-x-auto">
@@ -908,9 +870,9 @@ function AdminDashboard() {
                       <tr key={presence.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10  flex items-center justify-center">
+                            <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center">
                               <img
-                                className="rounded-full h-10 w-10 "
+                                className="rounded-full h-10 w-10"
                                 src={presence.user.photoUrl}
                                 alt="photo_de_profil"
                               />
@@ -969,106 +931,81 @@ function AdminDashboard() {
 
               {/* Pagination */}
               {filteredPresences.length > 0 && (
-                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                  <div className="flex-1 flex justify-between sm:hidden">
-                    <button
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(prev - 1, 1))
-                      }
-                      disabled={currentPage === 1}
-                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                        currentPage === 1
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-white text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      Précédent
-                    </button>
-                    <button
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                      }
-                      disabled={currentPage === totalPages}
-                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                        currentPage === totalPages
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-white text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      Suivant
-                    </button>
-                  </div>
-                  <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-sm text-gray-700">
-                        Affichage de{" "}
-                        <span className="font-medium">
-                          {(currentPage - 1) * itemsPerPage + 1}
-                        </span>{" "}
-                        à{" "}
-                        <span className="font-medium">
-                          {Math.min(
-                            currentPage * itemsPerPage,
-                            filteredPresences.length
-                          )}
-                        </span>{" "}
-                        sur{" "}
-                        <span className="font-medium">
-                          {filteredPresences.length}
-                        </span>{" "}
-                        résultats
-                      </p>
-                    </div>
-                    <div>
-                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                        <button
-                          onClick={() =>
-                            setCurrentPage((prev) => Math.max(prev - 1, 1))
-                          }
-                          disabled={currentPage === 1}
-                          className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-                            currentPage === 1
-                              ? "text-gray-300 cursor-not-allowed"
-                              : "text-gray-500 hover:bg-gray-50"
-                          }`}
-                        >
-                          <ChevronLeft className="h-5 w-5" />
-                        </button>
+  <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+    <div className="flex-1 flex justify-between sm:hidden">
+      <button
+        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+        disabled={currentPage === 1}
+        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
+          currentPage === 1
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-white text-gray-700 hover:bg-gray-50"
+        }`}
+      >
+        Précédent
+      </button>
+      <button
+        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+        disabled={currentPage === totalPages}
+        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
+          currentPage === totalPages
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-white text-gray-700 hover:bg-gray-50"
+        }`}
+      >
+        Suivant
+      </button>
+    </div>
+    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+      <div>
+        <p className="text-sm text-gray-700">
+          Affichage de{" "}
+          <span className="font-medium">
+            {(currentPage - 1) * itemsPerPage + 1}
+          </span>{" "}
+          à{" "}
+          <span className="font-medium">
+            {Math.min(currentPage * itemsPerPage, filteredPresences.length)}
+          </span>{" "}
+          sur{" "}
+          <span className="font-medium">
+            {filteredPresences.length}
+          </span>{" "}
+          résultats
+        </p>
+      </div>
+      <div>
+        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+              currentPage === 1
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-500 hover:bg-gray-50"
+            }`}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
 
-                        {[...Array(totalPages)].map((_, index) => (
-                          <button
-                            key={index + 1}
-                            onClick={() => setCurrentPage(index + 1)}
-                            className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
-                              currentPage === index + 1
-                                ? "bg-orange-50 border-orange-500 text-orange-600 z-10"
-                                : "bg-white text-gray-500 hover:bg-gray-50"
-                            }`}
-                          >
-                            {index + 1}
-                          </button>
-                        ))}
+          {renderPagination()}
 
-                        <button
-                          onClick={() =>
-                            setCurrentPage((prev) =>
-                              Math.min(prev + 1, totalPages)
-                            )
-                          }
-                          disabled={currentPage === totalPages}
-                          className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                            currentPage === totalPages
-                              ? "text-gray-300 cursor-not-allowed"
-                              : "text-gray-500 hover:bg-gray-50"
-                          }`}
-                        >
-                          <ChevronRight className="h-5 w-5" />
-                        </button>
-                      </nav>
-                    </div>
-                  </div>
-                </div>
-              )}
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+              currentPage === totalPages
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-500 hover:bg-gray-50"
+            }`}
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </nav>
+      </div>
+    </div>
+  </div>
+)}
             </div>
           </>
         ) : (
@@ -1137,7 +1074,7 @@ function AdminDashboard() {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center">
                             <img
-                              className="rounded-full h-10 w-10 "
+                              className="rounded-full h-10 w-10"
                               src={presence.user.photoUrl}
                               alt="photo_de_profil"
                             />
