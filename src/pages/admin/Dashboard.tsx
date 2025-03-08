@@ -1130,106 +1130,81 @@ function AdminDashboard() {
 
             {/* Pagination */}
             {filteredPresences.length > 0 && (
-              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                <div className="flex-1 flex justify-between sm:hidden">
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    disabled={currentPage === 1}
-                    className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                      currentPage === 1
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    Précédent
-                  </button>
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                    }
-                    disabled={currentPage === totalPages}
-                    className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                      currentPage === totalPages
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    Suivant
-                  </button>
-                </div>
-                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm text-gray-700">
-                      Affichage de{" "}
-                      <span className="font-medium">
-                        {(currentPage - 1) * itemsPerPage + 1}
-                      </span>{" "}
-                      à{" "}
-                      <span className="font-medium">
-                        {Math.min(
-                          currentPage * itemsPerPage,
-                          filteredPresences.length
-                        )}
-                      </span>{" "}
-                      sur{" "}
-                      <span className="font-medium">
-                        {filteredPresences.length}
-                      </span>{" "}
-                      résultats
-                    </p>
-                  </div>
-                  <div>
-                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                      <button
-                        onClick={() =>
-                          setCurrentPage((prev) => Math.max(prev - 1, 1))
-                        }
-                        disabled={currentPage === 1}
-                        className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-                          currentPage === 1
-                            ? "text-gray-300 cursor-not-allowed"
-                            : "text-gray-500 hover:bg-gray-50"
-                        }`}
-                      >
-                        <ChevronLeft className="h-5 w-5" />
-                      </button>
+  <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+    <div className="flex-1 flex justify-between sm:hidden">
+      <button
+        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+        disabled={currentPage === 1}
+        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
+          currentPage === 1
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-white text-gray-700 hover:bg-gray-50"
+        }`}
+      >
+        Précédent
+      </button>
+      <button
+        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+        disabled={currentPage === totalPages}
+        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
+          currentPage === totalPages
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-white text-gray-700 hover:bg-gray-50"
+        }`}
+      >
+        Suivant
+      </button>
+    </div>
+    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+      <div>
+        <p className="text-sm text-gray-700">
+          Affichage de{" "}
+          <span className="font-medium">
+            {(currentPage - 1) * itemsPerPage + 1}
+          </span>{" "}
+          à{" "}
+          <span className="font-medium">
+            {Math.min(currentPage * itemsPerPage, filteredPresences.length)}
+          </span>{" "}
+          sur{" "}
+          <span className="font-medium">
+            {filteredPresences.length}
+          </span>{" "}
+          résultats
+        </p>
+      </div>
+      <div>
+        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+              currentPage === 1
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-500 hover:bg-gray-50"
+            }`}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
 
-                      {[...Array(totalPages)].map((_, index) => (
-                        <button
-                          key={index + 1}
-                          onClick={() => setCurrentPage(index + 1)}
-                          className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
-                            currentPage === index + 1
-                              ? "bg-orange-50 border-orange-500 text-orange-600 z-10"
-                              : "bg-white text-gray-500 hover:bg-gray-50"
-                          }`}
-                        >
-                          {index + 1}
-                        </button>
-                      ))}
+          {renderPagination()}
 
-                      <button
-                        onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(prev + 1, totalPages)
-                          )
-                        }
-                        disabled={currentPage === totalPages}
-                        className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                          currentPage === totalPages
-                            ? "text-gray-300 cursor-not-allowed"
-                            : "text-gray-500 hover:bg-gray-50"
-                        }`}
-                      >
-                        <ChevronRight className="h-5 w-5" />
-                      </button>
-                    </nav>
-                  </div>
-                </div>
-              </div>
-            )}
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+              currentPage === totalPages
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-500 hover:bg-gray-50"
+            }`}
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </nav>
+      </div>
+    </div>
+  </div>
+)}
           </div>
         )}
       </main>
