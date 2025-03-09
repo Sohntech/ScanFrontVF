@@ -8,13 +8,13 @@ export enum UserRole {
 
 export interface User {
   id: string;
-  email: string;
   firstName: string;
   lastName: string;
-  role: UserRole;
-  matricule?: string;
+  email: string;
+  matricule: string;
+  referentiel: string;
   photoUrl?: string;
-  referentiel?: string;
+  role: UserRole;
   qrCode?: string;
   createdAt: string;
   updatedAt: string;
@@ -27,6 +27,7 @@ export interface Presence {
   status: string;
   arrivalTime?: string;
   user: {
+    id: string;
     email: string;
     firstName: string;
     lastName: string;
