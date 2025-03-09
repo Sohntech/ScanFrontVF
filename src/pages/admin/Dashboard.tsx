@@ -15,14 +15,11 @@ import {
   ChevronLeft,
   RefreshCw,
   Calendar,
-  Download,
   Search,
   Filter,
   Users,
   Clock,
   Check,
-  Menu,
-  X,
   LayoutDashboard,
   UserPlus,
 } from "lucide-react";
@@ -31,9 +28,9 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { PresenceTable } from "@/components/dashboard/PresenceTable";
 import { Pagination } from "@/components/dashboard/Pagination";
 import { DownloadButton } from "@/components/dashboard/DownloadButton";
-import { LearnersList } from "@/components/learners/LearnersList";
 import { Modal } from "@/components/shared/Modal";
 import { LearnerForm } from "@/components/learners/LearnerForm";
+import { LearnersList } from "@/components/learners/LearnersList";
 
 // Theme colors
 const COLORS = {
@@ -88,9 +85,7 @@ function AdminDashboard() {
   const [selectedUser, setSelectedUser] = useState<User | Presence | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [users, setUsers] = useState<Presence[]>([]); // À remplir avec vos données d'API
   const [learners, setLearners] = useState<User[]>([]);
 
   // Check if the device is mobile
@@ -647,46 +642,43 @@ function AdminDashboard() {
               </>
             ) : (
               <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                <div className="p-6 border-b border-gray-200">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900">Liste des apprenants</h2>
-                      <p className="mt-1 text-sm text-gray-500">
-                        {learners.length} apprenant{learners.length !== 1 ? 's' : ''} inscrit{learners.length !== 1 ? 's' : ''}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setShowAddLearnerModal(true)}
-                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700"
-                    >
-                      <UserPlus className="h-5 w-5 mr-2" />
-                      Ajouter
-                    </button>
+                <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Liste des {selectedTab === "present" ? "présents" : selectedTab === "late" ? "retards" : "absents"}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {filteredPresences.filter(p => p.status.toLowerCase() === selectedStatus).length} apprenant
+                      {filteredPresences.filter(p => p.status.toLowerCase() === selectedStatus).length !== 1 ? "s" : ""} trouvé
+                      {filteredPresences.filter(p => p.status.toLowerCase() === selectedStatus).length !== 1 ? "s" : ""}
+                    </p>
                   </div>
+                  <button
+                    onClick={() => {
+                      setSelectedTab("overview");
+                      setSelectedStatus("");
+                      setCurrentPage(1);
+                    }}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition duration-150"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>Retour</span>
+                  </button>
                 </div>
+
                 <div className="overflow-x-auto">
-                  <LearnersList
-                    data={learners.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)}
-                    isLoading={isLoading}
-                    onView={(user) => {
-                      setSelectedUser(user);
-                      setShowViewModal(true);
-                    }}
-                    onEdit={(user) => {
-                      setSelectedUser(user);
-                      setShowEditModal(true);
-                    }}
-                    onDelete={(userId) => {
-                      setUserToDelete(userId);
-                      setShowDeleteModal(true);
-                    }}
+                  <PresenceTable 
+                    data={filteredPresences
+                      .filter(presence => presence.status.toLowerCase() === selectedStatus)
+                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)} 
+                    isLoading={isLoading} 
                   />
-                  {learners.length > itemsPerPage && (
+                  {filteredPresences.filter(p => p.status.toLowerCase() === selectedStatus).length > itemsPerPage && (
                     <Pagination
                       currentPage={currentPage}
-                      totalPages={Math.ceil(learners.length / itemsPerPage)}
+                      totalPages={Math.ceil(filteredPresences.filter(p => p.status.toLowerCase() === selectedStatus).length / itemsPerPage)}
                       itemsPerPage={itemsPerPage}
-                      totalItems={learners.length}
+                      totalItems={filteredPresences.filter(p => p.status.toLowerCase() === selectedStatus).length}
                       onPageChange={setCurrentPage}
                     />
                   )}
@@ -697,6 +689,27 @@ function AdminDashboard() {
         ) : (
           <>
             {/* Contenu de la vue apprenants */}
+            {activeView === "learners" && (
+              <div className="overflow-x-auto">
+                <LearnersList
+                  data={learners}
+                  isLoading={isLoading}
+                  onView={(user: User) => {
+                    setSelectedUser(user);
+                    setShowViewModal(true);
+                  }}
+                  onEdit={(user: User) => {
+                    setSelectedUser(user);
+                    setShowEditModal(true);
+                  }}
+                  onDelete={(userId: string) => {
+                    const userToDelete = learners.find(l => l.id === userId);
+                    setSelectedUser(userToDelete || null);
+                    setShowDeleteModal(true);
+                  }}
+                />
+              </div>
+            )}
           </>
         )}
       </main>
