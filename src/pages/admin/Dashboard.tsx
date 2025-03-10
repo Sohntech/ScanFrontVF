@@ -731,6 +731,7 @@ function AdminDashboard() {
                         ? "retards"
                         : "absents"}
                     </h3>
+                    
                     <p className="mt-1 text-sm text-gray-500">
                       {
                         filteredPresences.filter(
@@ -751,6 +752,9 @@ function AdminDashboard() {
                         : ""}
                     </p>
                   </div>
+                  <div className="flex items-center space-x-2 px-4">
+                      <DownloadButton presences={filteredPresences} />
+                    </div>
                   <button
                     onClick={() => {
                       setSelectedTab("overview");
