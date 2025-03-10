@@ -24,7 +24,7 @@ export const DownloadButton = ({ presences }: DownloadButtonProps) => {
     });
     
     generatePDF({
-      title: "La liste des présences",
+      title: "\nLa liste des présences",
       headers,
       data,
       filename: "liste-presences.pdf"
