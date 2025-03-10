@@ -1,3 +1,4 @@
+// src/store/slices/authSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import api from '@/lib/axios';
@@ -30,6 +31,13 @@ export const getProfile = createAsyncThunk('auth/getProfile', async () => {
   return response.data;
 });
 
+// 🔹 Get Users by Role
+export const getUsersByRole = createAsyncThunk('auth/getUsersByRole', async (role: string) => {
+  const response = await api.get(`/users?role=${role}`);
+  return response.data;
+});
+
+// 🔹 Update Profile
 export const updateProfile = createAsyncThunk('auth/updateProfile', async (data: Partial<User> & { photo?: File }) => {
   const formData = new FormData();
   Object.entries(data).forEach(([key, value]) => {
@@ -45,13 +53,13 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (data:
   return response.data;
 });
 
-// 🔹 Forgot Password (Demande de reset via email)
+// 🔹 Forgot Password
 export const forgotPassword = createAsyncThunk('auth/forgotPassword', async (email: string) => {
   const response = await api.post('/auth/forgot-password', { email });
   return response.data;
 });
 
-// 🔹 Reset Password (Mise à jour du mot de passe)
+// 🔹 Reset Password
 export const resetPassword = createAsyncThunk('auth/resetPassword', async ({ token, newPassword }: { token: number; newPassword: string }) => {
   const response = await api.post('/auth/reset-password', { token, newPassword });
   return response.data;
@@ -120,6 +128,21 @@ const authSlice = createSlice({
         state.error = action.error.message || 'Une erreur est survenue';
       })
 
+      // 🔹 Get Users by Role
+      .addCase(getUsersByRole.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getUsersByRole.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload; // Stocke les utilisateurs récupérés
+      })
+      .addCase(getUsersByRole.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Une erreur est survenue lors de la récupération des utilisateurs';
+      })
+
+      // 🔹 Update Profile
       .addCase(updateProfile.pending, (state) => {
         state.isLoading = true;
         state.error = null;
