@@ -912,7 +912,7 @@ function AdminDashboard() {
       {/* Modal de détails */}
       {showDetailsModal && (
         <Modal title="Détails" onClose={() => setShowDetailsModal(false)}>
-          <div className="p-6">
+          <div className="p-6 ">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {detailsData.title} - {detailsData.data.length} apprenants
             </h3>
@@ -1001,7 +1001,7 @@ function AdminDashboard() {
           title="Détails de l'apprenant"
           onClose={() => setShowViewModal(false)}
         >
-          <div className="p-6">
+          <div className="p-6 z-50">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {"user" in selectedUser
                 ? `${selectedUser.user.firstName} ${selectedUser.user.lastName}`

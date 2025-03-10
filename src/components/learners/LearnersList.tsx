@@ -1,5 +1,5 @@
 import { User } from "@/types/index";
-import { MoreVertical, Edit, Trash2, Eye } from "lucide-react";
+import { MoreVertical, /*Edit, Trash2, Eye*/ } from "lucide-react";
 import { useState } from "react";
 
 interface LearnersListProps {
@@ -10,7 +10,7 @@ interface LearnersListProps {
   onDelete: (userId: string) => void;
 }
 
-export const LearnersList = ({ data, isLoading, onView, onEdit, onDelete }: LearnersListProps) => {
+export const LearnersList = ({ data, isLoading, /*onView, onEdit, onDelete*/ }: LearnersListProps) => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   return (
@@ -72,8 +72,8 @@ export const LearnersList = ({ data, isLoading, onView, onEdit, onDelete }: Lear
                     <MoreVertical className="h-5 w-5" />
                   </button>
                   
-                  {activeMenu === user.id && (
-                    <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                  {/* {activeMenu === user.id && (
+                    <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                       <div className="py-1">
                         <button
                           onClick={() => {
@@ -107,7 +107,7 @@ export const LearnersList = ({ data, isLoading, onView, onEdit, onDelete }: Lear
                         </button>
                       </div>
                     </div>
-                  )}
+                  )} */}
                 </div>
               </td>
             </tr>
